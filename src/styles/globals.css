@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Print styles */
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    margin: 0;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-area {
+    margin: 0 !important;
+    padding: 10mm !important;
+    box-shadow: none !important;
+    min-height: 277mm !important; /* A4 height - 2 * margin */
+    width: 190mm !important; /* A4 width - 2 * margin */
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Screen preview styles */
+@media screen {
+  .print-area {
+    background: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 190mm; /* A4 width - 2 * margin */
+    min-height: 277mm; /* A4 height - 2 * margin */
+    padding: 10mm;
+    margin: 0 auto;
+  }
+}
+
+/* Ensure proper font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Force proper color printing */
+* {
+  color-adjust: exact !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+} 

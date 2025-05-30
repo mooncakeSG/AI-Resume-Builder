@@ -1,57 +1,63 @@
-import { useRef, useEffect, memo } from 'react'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
+import { useRef, useState, memo } from 'react'
 import { useToast } from './ui/ToastProvider'
+import TemplateManager from '../lib/templates/TemplateManager'
+import { generatePDF } from '../lib/utils/pdfGenerator'
+
+// A4 dimensions in mm
+const A4_DIMENSIONS = {
+  WIDTH: 210,
+  HEIGHT: 297,
+};
+
+// Margins in mm
+const MARGINS = {
+  TOP: 10,
+  BOTTOM: 10,
+  LEFT: 10,
+  RIGHT: 10,
+};
 
 const Preview = memo(({ data }) => {
   const previewRef = useRef(null)
   const { showToast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
 
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
-  }
+  const handlePrint = () => {
+    window.print();
+  };
 
   const downloadPDF = async () => {
+    if (!previewRef.current) {
+      showToast('Preview element not found', 'error');
+      return;
+    }
+
     try {
-      const element = previewRef.current
-      if (!element) {
-        showToast('Preview element not found', 'error')
-        return
+      setIsLoading(true);
+      
+      // Get the template element
+      const templateElement = previewRef.current.querySelector('.print-area');
+      if (!templateElement) {
+        throw new Error('Template element not found');
       }
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      })
-
-      const imgData = canvas.toDataURL('image/png')
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'px',
-        format: 'a4'
-      })
-
-      const imgProps = pdf.getImageProperties(imgData)
-      const pdfWidth = pdf.internal.pageSize.getWidth()
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
-
-      // Generate filename from personal details or use default
-      const fileName = data?.personal?.name 
-        ? `${data.personal.name.toLowerCase().replace(/\s+/g, '_')}_resume.pdf`
-        : 'resume.pdf'
-
-      pdf.save(fileName)
-      showToast('PDF downloaded successfully!', 'success')
+      // Generate PDF using html2canvas
+      const pdf = await generatePDF(templateElement);
+      
+      // Save the PDF with appropriate filename
+      const fileName = data.personal?.firstName && data.personal?.lastName
+        ? `${data.personal.firstName.toLowerCase()}_${data.personal.lastName.toLowerCase()}_resume.pdf`
+        : 'resume.pdf';
+      
+      pdf.save(fileName);
+      showToast('PDF downloaded successfully!', 'success');
     } catch (error) {
-      console.error('PDF generation error:', error)
-      showToast('Failed to generate PDF. Please try again.', 'error')
+      console.error('PDF generation error:', error);
+      showToast('Failed to generate PDF. Please try again.', 'error');
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
   if (!data || !data.personal) {
     return (
@@ -60,141 +66,58 @@ const Preview = memo(({ data }) => {
           No resume data available. Start filling out the form to see the preview.
         </div>
       </div>
-    )
-  }
-
-  // Normalize data structure
-  const normalizedData = {
-    personal: data.personal || {},
-    experience: Array.isArray(data.experience) ? data.experience : [],
-    education: Array.isArray(data.education) ? data.education : [],
-    skills: Array.isArray(data.skills) ? data.skills : []
+    );
   }
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-8 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Resume Preview</h2>
-        <button
-          onClick={downloadPDF}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Download PDF
-        </button>
-      </div>
-
-      <div ref={previewRef} className="bg-white p-8 shadow-inner rounded-lg">
-        {/* Personal Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{normalizedData.personal.name || 'Your Name'}</h1>
-          <div className="text-gray-600 mb-4">
-            {[
-              normalizedData.personal.email,
-              normalizedData.personal.phone,
-              normalizedData.personal.location
-            ].filter(Boolean).join(' • ')}
-          </div>
-          {normalizedData.personal.summary && (
-            <p className="text-gray-700 whitespace-pre-line">{normalizedData.personal.summary}</p>
-          )}
-          {normalizedData.personal.links && Object.keys(normalizedData.personal.links).length > 0 && (
-            <div className="mt-4 flex flex-wrap gap-4">
-              {Object.entries(normalizedData.personal.links).map(([platform, url]) => (
-                url && (
-                  <a
-                    key={platform}
-                    href={url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800"
-                  >
-                    {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                  </a>
-                )
-              ))}
-            </div>
-          )}
+    <div className="bg-white rounded-lg shadow-lg overflow-hidden" ref={previewRef}>
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center no-print">
+        <h2 className="text-lg font-semibold text-gray-800">Preview</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrint}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Print
+          </button>
+          <button
+            onClick={downloadPDF}
+            disabled={isLoading}
+            data-action="download-pdf"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                Generating...
+              </>
+            ) : (
+              'Download PDF'
+            )}
+          </button>
         </div>
-
-        {/* Experience Section */}
-        {normalizedData.experience.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Experience</h2>
-            {normalizedData.experience.map((exp, index) => (
-              <div key={index} className="mb-6">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{exp.position}</h3>
-                    <div className="text-gray-600">{exp.company}</div>
-                  </div>
-                  <div className="text-gray-500 text-sm">
-                    {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
-                  </div>
-                </div>
-                {exp.description && (
-                  <p className="text-gray-700 mb-2 whitespace-pre-line">{exp.description}</p>
-                )}
-                {exp.achievements?.length > 0 && (
-                  <ul className="list-disc list-inside space-y-1">
-                    {exp.achievements.map((achievement, i) => (
-                      <li key={i} className="text-gray-700">{achievement}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Education Section */}
-        {normalizedData.education.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Education</h2>
-            {normalizedData.education.map((edu, index) => (
-              <div key={index} className="mb-6">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{edu.school}</h3>
-                    <div className="text-gray-600">{edu.degree} in {edu.field}</div>
-                  </div>
-                  <div className="text-gray-500 text-sm">
-                    {formatDate(edu.startDate)} - {edu.endDate ? formatDate(edu.endDate) : 'Present'}
-                  </div>
-                </div>
-                {edu.description && (
-                  <p className="text-gray-700 mb-2 whitespace-pre-line">{edu.description}</p>
-                )}
-                {edu.achievements?.length > 0 && (
-                  <ul className="list-disc list-inside space-y-1">
-                    {edu.achievements.map((achievement, i) => (
-                      <li key={i} className="text-gray-700">{achievement}</li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Skills Section */}
-        {normalizedData.skills.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Skills</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {normalizedData.skills.map((skill, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-gray-700">{skill.name}</span>
-                  <span className="text-gray-500 text-sm">{skill.proficiency}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      </div>
+      
+      <div className="flex justify-center p-6 print:p-0">
+        <div 
+          className="print-area"
+          style={{
+            width: `${A4_DIMENSIONS.WIDTH - (MARGINS.LEFT + MARGINS.RIGHT)}mm`,
+            minHeight: `${A4_DIMENSIONS.HEIGHT - (MARGINS.TOP + MARGINS.BOTTOM)}mm`,
+            padding: `${MARGINS.TOP}mm ${MARGINS.RIGHT}mm ${MARGINS.BOTTOM}mm ${MARGINS.LEFT}mm`,
+            backgroundColor: 'white',
+            boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+            margin: '0 auto',
+          }}
+        >
+          <TemplateManager data={data} />
+        </div>
       </div>
     </div>
-  )
-})
+  );
+});
 
-Preview.displayName = 'Preview'
+Preview.displayName = 'Preview';
 
-export default Preview 
+export default Preview; 

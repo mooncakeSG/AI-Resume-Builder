@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react'
 import AISuggest from './AISuggest'
 
-const Education = ({ data = [], updateData }) => {
-  const [educationList, setEducationList] = useState(data)
+const Education = ({ data, onChange }) => {
+  const [educationList, setEducationList] = useState(Array.isArray(data) ? data : [])
   const [errors, setErrors] = useState({})
 
   useEffect(() => {
-    setEducationList(data)
+    setEducationList(Array.isArray(data) ? data : [])
   }, [data])
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateData(educationList)
+      onChange?.(educationList)
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [educationList, updateData])
+  }, [educationList, onChange])
 
   const handleChange = (index, field, value) => {
     const newList = [...educationList]

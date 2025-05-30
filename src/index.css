@@ -74,3 +74,186 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print Styles */
+@media print {
+  /* Hide everything except the resume content */
+  body * {
+    visibility: hidden;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Show only the resume template */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  /* Reset template container for printing */
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm !important;
+    margin: 0 !important;
+    background: white;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* Base typography for print */
+  .print-area {
+    font-family: Arial, sans-serif !important;
+    font-size: 11pt !important;
+    line-height: 1.3 !important;
+    color: black !important;
+  }
+
+  /* Header section */
+  .print-area header {
+    margin-bottom: 15pt !important;
+    border-bottom: 1pt solid #ccc !important;
+    padding-bottom: 10pt !important;
+  }
+
+  /* Name/Header */
+  .print-area h1 {
+    font-size: 28pt !important;
+    line-height: 1.1 !important;
+    margin: 0 0 10pt 0 !important;
+    font-weight: 700 !important;
+    color: #000 !important;
+  }
+
+  /* Contact info container */
+  .print-area .contact-info {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12pt !important;
+    margin: 8pt 0 !important;
+  }
+
+  /* Contact items */
+  .print-area .contact-info span,
+  .print-area .contact-info a {
+    font-size: 10pt !important;
+    line-height: 1.2 !important;
+    color: #333 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4pt !important;
+  }
+
+  /* Section headings */
+  .print-area h2 {
+    font-size: 16pt !important;
+    line-height: 1.2 !important;
+    margin: 15pt 0 8pt 0 !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Subsection headings */
+  .print-area h3 {
+    font-size: 12pt !important;
+    line-height: 1.2 !important;
+    margin: 0 0 4pt 0 !important;
+    font-weight: 600 !important;
+    color: #000 !important;
+  }
+
+  /* Company/Institution names */
+  .print-area .company-name,
+  .print-area .institution-name {
+    font-size: 11pt !important;
+    line-height: 1.3 !important;
+    font-weight: 500 !important;
+    color: #333 !important;
+    margin-bottom: 2pt !important;
+  }
+
+  /* Dates and locations */
+  .print-area .date-range,
+  .print-area .location {
+    font-size: 10pt !important;
+    color: #666 !important;
+    margin-bottom: 4pt !important;
+  }
+
+  /* List styling */
+  .print-area ul {
+    margin: 4pt 0 8pt 0 !important;
+    padding-left: 12pt !important;
+  }
+
+  .print-area li {
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+    margin-bottom: 3pt !important;
+    color: #333 !important;
+  }
+
+  /* Skills section */
+  .print-area .skills {
+    margin-top: 10pt !important;
+  }
+
+  .print-area .skills .skills-container {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6pt !important;
+    margin-top: 6pt !important;
+  }
+
+  /* Skill tags */
+  .print-area .skills span {
+    font-size: 10pt !important;
+    padding: 2pt 8pt !important;
+    border: 0.75pt solid #666 !important;
+    border-radius: 12pt !important;
+    background: none !important;
+    color: #333 !important;
+  }
+
+  /* Section containers */
+  .print-area section {
+    margin-bottom: 12pt !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Experience/Education items */
+  .print-area .experience-item,
+  .print-area .education-item {
+    border-left: 1pt solid #ccc !important;
+    padding-left: 8pt !important;
+    margin-bottom: 10pt !important;
+  }
+
+  /* Icons */
+  .print-area svg {
+    width: 10pt !important;
+    height: 10pt !important;
+    color: #666 !important;
+  }
+
+  /* Links */
+  .print-area a {
+    text-decoration: none !important;
+    color: #333 !important;
+  }
+
+  /* Set page size and margins */
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  /* Hide UI elements */
+  nav, button, .no-print {
+    display: none !important;
+  }
+}

@@ -22,9 +22,10 @@ const CAREER_TYPES = [
   'Other'
 ]
 
-const Personal = ({ data, updateData }) => {
+const Personal = ({ data, onChange }) => {
   const [personalDetails, setPersonalDetails] = useState(data || {
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     location: '',
@@ -44,12 +45,12 @@ const Personal = ({ data, updateData }) => {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (JSON.stringify(data) !== JSON.stringify(personalDetails)) {
-        updateData(personalDetails)
+        onChange?.(personalDetails)
       }
     }, 300)
     
     return () => clearTimeout(timeoutId)
-  }, [personalDetails, updateData, data])
+  }, [personalDetails, onChange, data])
 
   const validateEmail = (email) => {
     if (!email) return true // Empty emails are allowed
@@ -117,19 +118,37 @@ const Personal = ({ data, updateData }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label 
-            htmlFor="fullName" 
+            htmlFor="firstName" 
             className="block text-sm font-medium text-gray-700"
           >
-            Full Name
+            First Name
           </label>
           <input
-            id="fullName"
-            name="fullName"
+            id="firstName"
+            name="firstName"
             type="text"
-            value={personalDetails.name || ''}
-            onChange={(e) => handleChange('name', e.target.value)}
-            className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-200'}`}
-            placeholder="John Doe"
+            value={personalDetails.firstName || ''}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            className={`w-full p-3 border rounded-lg ${errors.firstName ? 'border-red-500' : 'border-gray-200'}`}
+            placeholder="John"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label 
+            htmlFor="lastName" 
+            className="block text-sm font-medium text-gray-700"
+          >
+            Last Name
+          </label>
+          <input
+            id="lastName"
+            name="lastName"
+            type="text"
+            value={personalDetails.lastName || ''}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            className={`w-full p-3 border rounded-lg ${errors.lastName ? 'border-red-500' : 'border-gray-200'}`}
+            placeholder="Doe"
           />
         </div>
 
@@ -192,53 +211,31 @@ const Personal = ({ data, updateData }) => {
             placeholder="City, Country"
           />
         </div>
-      </div>
 
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <label 
             htmlFor="careerType"
             className="block text-sm font-medium text-gray-700"
           >
-            Career Type
+            Career Field
           </label>
           <select
             id="careerType"
             name="careerType"
             value={personalDetails.careerType || ''}
             onChange={(e) => handleChange('careerType', e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-lg bg-white"
+            className="w-full p-3 border border-gray-200 rounded-lg"
           >
-            <option value="">Select a career type</option>
+            <option value="">Select a career field</option>
             {CAREER_TYPES.map(type => (
               <option key={type} value={type}>{type}</option>
             ))}
           </select>
         </div>
-
-        <div className="space-y-2">
-          <label 
-            htmlFor="yearsOfExperience"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Years of Experience
-          </label>
-          <input
-            id="yearsOfExperience"
-            name="yearsOfExperience"
-            type="number"
-            min="0"
-            max="50"
-            value={personalDetails.yearsOfExperience || ''}
-            onChange={(e) => handleChange('yearsOfExperience', e.target.value)}
-            className="w-full p-3 border border-gray-200 rounded-lg"
-            placeholder="e.g., 5"
-          />
-        </div>
       </div>
 
-      <div className="mt-6 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
           <label 
             htmlFor="summary"
             className="block text-sm font-medium text-gray-700"
@@ -248,21 +245,17 @@ const Personal = ({ data, updateData }) => {
           <AISuggest
             type="summary"
             onSuggestionSelect={handleSummaryUpdate}
-            context={{
-              name: personalDetails.name,
-              position: personalDetails.careerType,
-              yearsOfExperience: personalDetails.yearsOfExperience,
-              location: personalDetails.location
-            }}
+            context={personalDetails}
           />
         </div>
         <textarea
           id="summary"
           name="summary"
+          rows={4}
           value={personalDetails.summary || ''}
           onChange={(e) => handleChange('summary', e.target.value)}
-          className="w-full p-3 border border-gray-200 rounded-lg min-h-[100px]"
-          placeholder="Write a brief professional summary..."
+          className="w-full p-3 border border-gray-200 rounded-lg"
+          placeholder="Write a brief summary of your professional background and career goals..."
         />
       </div>
 

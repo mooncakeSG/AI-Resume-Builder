@@ -8,7 +8,7 @@
 - [x] Experience section with achievements and tech stack
 - [x] Skills section with categorization
 - [x] Live preview with responsive design
-- [x] PDF export functionality
+- [x] PDF export functionality with proper formatting and font sizing
 - [x] Print functionality
 - [x] AI suggestions using Groq API
 - [x] Form data persistence (localStorage)
@@ -23,6 +23,7 @@
 - [x] Success/error notifications
 - [x] Print-friendly styles
 - [x] Mobile-friendly design
+- [x] PDF export loading states and error handling
 
 ## 🚧 In Progress
 
@@ -67,10 +68,10 @@
 - [ ] Add collaboration features
 
 ## 🐛 Known Issues
-- [ ] PDF generation might be slow for large resumes
 - [ ] Mobile view needs optimization for very small screens
 - [ ] AI suggestions might need rate limiting
 - [ ] Print layout needs fine-tuning for some browsers
+- [x] PDF generation formatting and font sizing issues resolved
 - [ ] (Fixed) Toast notification system refactored to use context provider and is now stable and non-obstructive
 
 ## 🔧 Technical Debt

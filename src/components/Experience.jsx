@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import AISuggest from './AISuggest'
 
-const Experience = ({ data = [], updateData }) => {
+const Experience = ({ data = [], onChange }) => {
   const [experienceList, setExperienceList] = useState(data)
   const [errors, setErrors] = useState({})
   const [currentlyEditing, setCurrentlyEditing] = useState(null)
@@ -12,11 +12,11 @@ const Experience = ({ data = [], updateData }) => {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateData(experienceList)
+      onChange?.(experienceList)
     }, 300)
     
     return () => clearTimeout(timeoutId)
-  }, [experienceList, updateData])
+  }, [experienceList, onChange])
 
   const handleChange = (index, field, value) => {
     const newList = [...experienceList]

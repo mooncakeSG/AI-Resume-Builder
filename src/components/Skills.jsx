@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import AISuggest from './AISuggest'
 
-const Skills = ({ data = [], updateData }) => {
+const Skills = ({ data = [], onChange }) => {
   const [skills, setSkills] = useState(data)
 
   useEffect(() => {
@@ -10,15 +10,15 @@ const Skills = ({ data = [], updateData }) => {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      updateData(skills)
+      onChange?.(skills)
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [skills, updateData])
+  }, [skills, onChange])
 
-  const handleSkillChange = (index, field, value) => {
+  const handleSkillChange = (index, value) => {
     const newSkills = [...skills]
-    newSkills[index] = { ...newSkills[index], [field]: value }
+    newSkills[index] = value
     setSkills(newSkills)
   }
 
@@ -28,8 +28,10 @@ const Skills = ({ data = [], updateData }) => {
       setSkills(prev => {
         const newSkills = [...prev]
         suggestedSkills.forEach(skill => {
-          if (!newSkills.some(s => s.name.toLowerCase() === skill.name.toLowerCase())) {
-            newSkills.push(skill)
+          // Handle both string and object formats from AI suggestions
+          const skillName = typeof skill === 'string' ? skill : skill.name
+          if (!newSkills.includes(skillName)) {
+            newSkills.push(skillName)
           }
         })
         return newSkills
@@ -40,7 +42,7 @@ const Skills = ({ data = [], updateData }) => {
   }
 
   const addSkill = () => {
-    setSkills(prev => [...prev, { name: '', proficiency: 'Intermediate' }])
+    setSkills(prev => [...prev, ''])
   }
 
   const removeSkill = (index) => {
@@ -58,7 +60,6 @@ const Skills = ({ data = [], updateData }) => {
           type="skills"
           onSuggestionSelect={handleSkillsSuggestion}
           context={{
-            title: data.title,
             experience: data.experience
           }}
         />
@@ -70,25 +71,16 @@ const Skills = ({ data = [], updateData }) => {
             <div className="flex-1">
               <input
                 type="text"
-                value={skill.name}
-                onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
+                value={skill}
+                onChange={(e) => handleSkillChange(index, e.target.value)}
                 className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="Enter skill (e.g., JavaScript, Project Management)"
               />
             </div>
-            <select
-              value={skill.proficiency}
-              onChange={(e) => handleSkillChange(index, 'proficiency', e.target.value)}
-              className="w-40 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-              <option value="Expert">Expert</option>
-            </select>
             <button
               onClick={() => removeSkill(index)}
               className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Remove skill"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
