@@ -4,235 +4,436 @@ import AISuggest from './AISuggest'
 const Experience = ({ data = [], updateData }) => {
   const [experienceList, setExperienceList] = useState(data)
   const [errors, setErrors] = useState({})
+  const [currentlyEditing, setCurrentlyEditing] = useState(null)
 
   useEffect(() => {
-    updateData(experienceList)
-  }, [experienceList, updateData])
+    setExperienceList(data)
+  }, [data])
 
-  const addExperience = () => {
-    setExperienceList([
-      ...experienceList,
-      {
-        company: '',
-        position: '',
-        location: '',
-        startDate: '',
-        endDate: '',
-        current: false,
-        description: '',
-        website: '',
-        technologies: ''
-      }
-    ])
-  }
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      updateData(experienceList)
+    }, 300)
+    
+    return () => clearTimeout(timeoutId)
+  }, [experienceList, updateData])
 
   const handleChange = (index, field, value) => {
     const newList = [...experienceList]
     newList[index] = { ...newList[index], [field]: value }
     setExperienceList(newList)
-    validateExperience(newList[index], index)
+    validateField(index, field, value)
+  }
+
+  const handleAchievementsSuggestion = (index, suggestion) => {
+    const newList = [...experienceList]
+    const currentAchievements = newList[index].achievements || []
+    newList[index] = {
+      ...newList[index],
+      achievements: [...currentAchievements, suggestion]
+    }
+    setExperienceList(newList)
+  }
+
+  const handleDescriptionSuggestion = (index, suggestion) => {
+    const newList = [...experienceList]
+    newList[index] = {
+      ...newList[index],
+      description: suggestion
+    }
+    setExperienceList(newList)
+  }
+
+  const handleLinksSuggestion = (index, suggestion) => {
+    const newList = [...experienceList]
+    newList[index] = {
+      ...newList[index],
+      links: {
+        ...(newList[index].links || {}),
+        ...suggestion
+      }
+    }
+    setExperienceList(newList)
+  }
+
+  const addExperience = () => {
+    setExperienceList(prev => [...prev, {
+      position: '',
+      company: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      current: false,
+      description: '',
+      achievements: [],
+      links: {}
+    }])
   }
 
   const removeExperience = (index) => {
-    const newList = experienceList.filter((_, i) => i !== index)
+    setExperienceList(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const removeAchievement = (expIndex, achievementIndex) => {
+    const newList = [...experienceList]
+    newList[expIndex].achievements = newList[expIndex].achievements.filter((_, i) => i !== achievementIndex)
     setExperienceList(newList)
+  }
+
+  const validateField = (index, field, value) => {
     const newErrors = { ...errors }
-    delete newErrors[index]
+    
+    switch (field) {
+      case 'position':
+        if (!value?.trim()) {
+          newErrors[`${index}-position`] = 'Position is required'
+        } else {
+          delete newErrors[`${index}-position`]
+        }
+        break
+      
+      case 'company':
+        if (!value?.trim()) {
+          newErrors[`${index}-company`] = 'Company is required'
+        } else {
+          delete newErrors[`${index}-company`]
+        }
+        break
+      
+      case 'startDate':
+        if (!value) {
+          newErrors[`${index}-startDate`] = 'Start date is required'
+        } else {
+          delete newErrors[`${index}-startDate`]
+        }
+        break
+      
+      default:
+        break
+    }
+    
     setErrors(newErrors)
   }
 
-  const validateExperience = (experience, index) => {
-    const newErrors = { ...errors }
-    const experienceErrors = {}
+  const validateUrl = (url) => {
+    if (!url) return true // Empty URLs are allowed
+    try {
+      new URL(url)
+      return true
+    } catch {
+      return false
+    }
+  }
 
-    if (!experience.company.trim()) {
-      experienceErrors.company = 'Company name is required'
+  const handleLinkChange = (index, linkType, value) => {
+    if (value && !validateUrl(value)) {
+      setErrors(prev => ({
+        ...prev,
+        [`${index}-${linkType}Link`]: 'Please enter a valid URL'
+      }))
+      return
     }
-    if (!experience.position.trim()) {
-      experienceErrors.position = 'Position is required'
-    }
-    if (!experience.startDate) {
-      experienceErrors.startDate = 'Start date is required'
-    }
-    if (!experience.current && !experience.endDate) {
-      experienceErrors.endDate = 'End date is required if not currently working'
-    }
-    if (experience.startDate && experience.endDate && !experience.current) {
-      const start = new Date(experience.startDate)
-      const end = new Date(experience.endDate)
-      if (end < start) {
-        experienceErrors.endDate = 'End date must be after start date'
+    
+    setErrors(prev => {
+      const newErrors = { ...prev }
+      delete newErrors[`${index}-${linkType}Link`]
+      return newErrors
+    })
+
+    const newList = [...experienceList]
+    newList[index] = {
+      ...newList[index],
+      links: {
+        ...(newList[index].links || {}),
+        [linkType]: value
       }
     }
-
-    if (Object.keys(experienceErrors).length > 0) {
-      newErrors[index] = experienceErrors
-    } else {
-      delete newErrors[index]
-    }
-    setErrors(newErrors)
-  }
-
-  const handleAISuggestion = (index, suggestion) => {
-    const newList = [...experienceList]
-    newList[index] = { ...newList[index], description: suggestion }
     setExperienceList(newList)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-800">Experience</h2>
+          <p className="text-sm text-gray-500 mt-1">Add your work experience</p>
+        </div>
+      </div>
+
       {experienceList.map((experience, index) => (
-        <div key={index} className="p-4 border border-gray-200 rounded-lg bg-white">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Experience {index + 1}</h3>
-            <button
-              onClick={() => removeExperience(index)}
-              className="text-red-600 hover:text-red-800"
-            >
-              Remove
-            </button>
-          </div>
+        <div key={index} className="bg-white rounded-lg shadow-sm p-6 relative">
+          <button
+            onClick={() => removeExperience(index)}
+            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={experience.company}
-                onChange={(e) => handleChange(index, 'company', e.target.value)}
-                className={`w-full p-2 border rounded-md ${
-                  errors[index]?.company ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
-              {errors[index]?.company && (
-                <p className="mt-1 text-sm text-red-600">{errors[index].company}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label 
+                htmlFor={`position-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
                 Position <span className="text-red-500">*</span>
               </label>
               <input
+                id={`position-${index}`}
+                name={`position-${index}`}
                 type="text"
-                value={experience.position}
+                value={experience.position || ''}
                 onChange={(e) => handleChange(index, 'position', e.target.value)}
-                className={`w-full p-2 border rounded-md ${
-                  errors[index]?.position ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full p-3 border rounded-lg ${errors[`${index}-position`] ? 'border-red-500' : 'border-gray-200'}`}
+                placeholder="e.g., Software Engineer"
               />
-              {errors[index]?.position && (
-                <p className="mt-1 text-sm text-red-600">{errors[index].position}</p>
+              {errors[`${index}-position`] && (
+                <p className="text-sm text-red-600">{errors[`${index}-position`]}</p>
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="space-y-2">
+              <label 
+                htmlFor={`company-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
+                Company <span className="text-red-500">*</span>
+              </label>
+              <input
+                id={`company-${index}`}
+                name={`company-${index}`}
+                type="text"
+                value={experience.company || ''}
+                onChange={(e) => handleChange(index, 'company', e.target.value)}
+                className={`w-full p-3 border rounded-lg ${errors[`${index}-company`] ? 'border-red-500' : 'border-gray-200'}`}
+                placeholder="Company name"
+              />
+              {errors[`${index}-company`] && (
+                <p className="text-sm text-red-600">{errors[`${index}-company`]}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <label 
+                htmlFor={`location-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
                 Location
               </label>
               <input
+                id={`location-${index}`}
+                name={`location-${index}`}
                 type="text"
-                value={experience.location}
+                value={experience.location || ''}
                 onChange={(e) => handleChange(index, 'location', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-3 border border-gray-200 rounded-lg"
+                placeholder="City, Country"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Website
+            <div className="space-y-2">
+              <label 
+                htmlFor={`industry-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
+                Industry
               </label>
               <input
-                type="url"
-                value={experience.website}
-                onChange={(e) => handleChange(index, 'website', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="https://"
+                id={`industry-${index}`}
+                name={`industry-${index}`}
+                type="text"
+                value={experience.industry || ''}
+                onChange={(e) => handleChange(index, 'industry', e.target.value)}
+                className="w-full p-3 border border-gray-200 rounded-lg"
+                placeholder="e.g., Technology, Healthcare"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="space-y-2">
+              <label 
+                htmlFor={`startDate-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
                 Start Date <span className="text-red-500">*</span>
               </label>
               <input
-                type="date"
-                value={experience.startDate}
+                id={`startDate-${index}`}
+                name={`startDate-${index}`}
+                type="month"
+                value={experience.startDate || ''}
                 onChange={(e) => handleChange(index, 'startDate', e.target.value)}
-                className={`w-full p-2 border rounded-md ${
-                  errors[index]?.startDate ? 'border-red-500' : 'border-gray-300'
-                }`}
+                className={`w-full p-3 border rounded-lg ${errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200'}`}
               />
-              {errors[index]?.startDate && (
-                <p className="mt-1 text-sm text-red-600">{errors[index].startDate}</p>
+              {errors[`${index}-startDate`] && (
+                <p className="text-sm text-red-600">{errors[`${index}-startDate`]}</p>
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                End Date {!experience.current && <span className="text-red-500">*</span>}
+            <div className="space-y-2">
+              <label 
+                htmlFor={`endDate-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
+                End Date
               </label>
-              <input
-                type="date"
-                value={experience.endDate}
-                onChange={(e) => handleChange(index, 'endDate', e.target.value)}
-                disabled={experience.current}
-                className={`w-full p-2 border rounded-md ${
-                  errors[index]?.endDate ? 'border-red-500' : 'border-gray-300'
-                } ${experience.current ? 'bg-gray-100' : ''}`}
-              />
-              {errors[index]?.endDate && (
-                <p className="mt-1 text-sm text-red-600">{errors[index].endDate}</p>
-              )}
-            </div>
-
-            <div className="md:col-span-2">
-              <div className="flex items-center mb-2">
+              <div className="flex items-center gap-4">
                 <input
-                  type="checkbox"
-                  checked={experience.current}
-                  onChange={(e) => handleChange(index, 'current', e.target.checked)}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                  id={`endDate-${index}`}
+                  name={`endDate-${index}`}
+                  type="month"
+                  value={experience.endDate || ''}
+                  onChange={(e) => handleChange(index, 'endDate', e.target.value)}
+                  disabled={experience.current}
+                  className="flex-1 p-3 border border-gray-200 rounded-lg disabled:bg-gray-100"
+                  min={experience.startDate}
                 />
-                <label className="ml-2 text-sm text-gray-700">
-                  I currently work here
+                <label className="flex items-center gap-2 text-sm text-gray-600">
+                  <input
+                    id={`current-${index}`}
+                    name={`current-${index}`}
+                    type="checkbox"
+                    checked={experience.current || false}
+                    onChange={(e) => handleChange(index, 'current', e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  Current
                 </label>
               </div>
             </div>
+          </div>
 
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Technologies Used
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <label 
+                htmlFor={`description-${index}`}
+                className="block text-sm font-medium text-gray-700"
+              >
+                Description
               </label>
-              <input
-                type="text"
-                value={experience.technologies}
-                onChange={(e) => handleChange(index, 'technologies', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="e.g., React, Node.js, TypeScript"
+              <AISuggest
+                type="experience"
+                onSuggestionSelect={(suggestion) => handleDescriptionSuggestion(index, suggestion)}
+                context={{
+                  position: experience.position,
+                  company: experience.company,
+                  industry: experience.industry,
+                  technologies: experience.technologies
+                }}
               />
             </div>
+            <textarea
+              id={`description-${index}`}
+              name={`description-${index}`}
+              value={experience.description || ''}
+              onChange={(e) => handleChange(index, 'description', e.target.value)}
+              className="w-full p-3 border border-gray-200 rounded-lg min-h-[100px]"
+              placeholder="Describe your role and responsibilities..."
+            />
+          </div>
 
-            <div className="md:col-span-2">
-              <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Description
-                </label>
-                <AISuggest
-                  type="experience"
-                  onSuggestionSelect={(suggestion) => handleAISuggestion(index, suggestion)}
-                  context={experience}
-                />
-              </div>
-              <textarea
-                value={experience.description}
-                onChange={(e) => handleChange(index, 'description', e.target.value)}
-                rows={4}
-                className="w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Describe your responsibilities and achievements..."
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Key Achievements
+              </label>
+              <AISuggest
+                type="experience"
+                onSuggestionSelect={(suggestion) => handleAchievementsSuggestion(index, suggestion)}
+                context={{
+                  position: experience.position,
+                  company: experience.company,
+                  industry: experience.industry,
+                  technologies: experience.technologies
+                }}
               />
+            </div>
+            <div className="space-y-2">
+              {experience.achievements?.map((achievement, achievementIndex) => (
+                <div key={achievementIndex} className="flex items-center gap-2 group">
+                  <input
+                    id={`achievement-${index}-${achievementIndex}`}
+                    name={`achievement-${index}-${achievementIndex}`}
+                    type="text"
+                    value={achievement}
+                    onChange={(e) => {
+                      const newList = [...experienceList]
+                      newList[index].achievements[achievementIndex] = e.target.value
+                      setExperienceList(newList)
+                    }}
+                    className="flex-1 p-3 border border-gray-200 rounded-lg"
+                    placeholder="Enter achievement"
+                  />
+                  <button
+                    onClick={() => removeAchievement(index, achievementIndex)}
+                    className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    aria-label="Remove achievement"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Professional Links
+              </label>
+              <AISuggest
+                type="links"
+                onSuggestionSelect={(suggestion) => handleLinksSuggestion(index, suggestion)}
+                context={{
+                  position: experience.position,
+                  company: experience.company,
+                  industry: experience.industry
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label 
+                  htmlFor={`portfolio-${index}`}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Project/Portfolio Link
+                </label>
+                <input
+                  id={`portfolio-${index}`}
+                  name={`portfolio-${index}`}
+                  type="url"
+                  value={experience.links?.portfolio || ''}
+                  onChange={(e) => handleLinkChange(index, 'portfolio', e.target.value)}
+                  className={`w-full p-3 border rounded-lg ${errors[`${index}-portfolioLink`] ? 'border-red-500' : 'border-gray-200'}`}
+                  placeholder="https://..."
+                />
+                {errors[`${index}-portfolioLink`] && (
+                  <p className="text-sm text-red-600">{errors[`${index}-portfolioLink`]}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label 
+                  htmlFor={`company-website-${index}`}
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Company Website
+                </label>
+                <input
+                  id={`company-website-${index}`}
+                  name={`company-website-${index}`}
+                  type="url"
+                  value={experience.links?.company || ''}
+                  onChange={(e) => handleLinkChange(index, 'company', e.target.value)}
+                  className={`w-full p-3 border rounded-lg ${errors[`${index}-companyLink`] ? 'border-red-500' : 'border-gray-200'}`}
+                  placeholder="https://company.com"
+                />
+                {errors[`${index}-companyLink`] && (
+                  <p className="text-sm text-red-600">{errors[`${index}-companyLink`]}</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -240,9 +441,9 @@ const Experience = ({ data = [], updateData }) => {
 
       <button
         onClick={addExperience}
-        className="w-full p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
       >
-        Add Experience
+        + Add Experience
       </button>
     </div>
   )
