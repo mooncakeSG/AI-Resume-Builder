@@ -3,6 +3,7 @@ import { useResume } from '../lib/data/ResumeContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Import, Plus, ArrowRightLeft, Edit2, Download, Trash2 } from 'lucide-react';
 
 export default function ProfileManager() {
   const {
@@ -69,10 +70,10 @@ export default function ProfileManager() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold">Resume Profiles</h2>
-        <div className="flex gap-2">
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h2 className="text-lg font-semibold">Resume Profiles</h2>
+        <div className="flex gap-2 w-full sm:w-auto">
           <input
             type="file"
             ref={fileInputRef}
@@ -82,40 +83,51 @@ export default function ProfileManager() {
           />
           <Button
             variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => fileInputRef.current?.click()}
           >
+            <Import className="h-4 w-4 mr-2" />
             Import
           </Button>
           <Button
+            size="sm"
+            className="flex-1 sm:flex-none"
             onClick={() => setIsCreating(true)}
           >
+            <Plus className="h-4 w-4 mr-2" />
             New Profile
           </Button>
         </div>
       </div>
 
       {isCreating && (
-        <form onSubmit={handleCreateProfile} className="flex gap-2">
+        <form onSubmit={handleCreateProfile} className="flex flex-col sm:flex-row gap-2">
           <Input
             type="text"
             value={newProfileName}
             onChange={(e) => setNewProfileName(e.target.value)}
             placeholder="Profile name"
             autoFocus
+            className="flex-1"
           />
-          <Button type="submit">
-            Create
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              setIsCreating(false);
-              setNewProfileName('');
-            }}
-          >
-            Cancel
-          </Button>
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" className="flex-1 sm:flex-none">
+              Create
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={() => {
+                setIsCreating(false);
+                setNewProfileName('');
+              }}
+            >
+              Cancel
+            </Button>
+          </div>
         </form>
       )}
 
@@ -125,71 +137,83 @@ export default function ProfileManager() {
             key={profile.id}
             className={profile.id === currentProfileId ? 'border-primary' : ''}
           >
-            <CardContent className="flex items-center justify-between p-4">
+            <CardContent className="p-3">
               {editingId === profile.id ? (
-                <form onSubmit={handleRename} className="flex-1 flex gap-2">
+                <form onSubmit={handleRename} className="flex flex-col sm:flex-row gap-2">
                   <Input
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
                     autoFocus
+                    className="flex-1"
                   />
-                  <Button type="submit" size="sm">
-                    Save
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setEditingId(null);
-                      setEditingName('');
-                    }}
-                  >
-                    Cancel
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button type="submit" size="sm" className="flex-1 sm:flex-none">
+                      Save
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 sm:flex-none"
+                      onClick={() => {
+                        setEditingId(null);
+                        setEditingName('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </form>
               ) : (
-                <>
+                <div className="flex flex-col sm:flex-row gap-3">
                   <div className="flex-1">
                     <h3 className="font-medium">{profile.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       Last modified: {new Date(profile.lastModified).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap gap-2 justify-end">
                     {profile.id !== currentProfileId && (
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         onClick={() => switchProfile(profile.id)}
+                        className="flex-1 sm:flex-none"
                       >
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
                         Switch
                       </Button>
                     )}
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleStartRename(profile)}
+                      className="flex-1 sm:flex-none"
                     >
+                      <Edit2 className="h-4 w-4 mr-2" />
                       Rename
                     </Button>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => exportProfile(profile.id)}
+                      className="flex-1 sm:flex-none"
                     >
+                      <Download className="h-4 w-4 mr-2" />
                       Export
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
                       onClick={() => handleDelete(profile.id)}
+                      className="flex-1 sm:flex-none"
                     >
+                      <Trash2 className="h-4 w-4 mr-2" />
                       Delete
                     </Button>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
