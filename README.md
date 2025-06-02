@@ -114,6 +114,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Tailwind CSS](https://tailwindcss.com) for styling
 - [jsPDF](https://github.com/parallax/jsPDF) for PDF generation
 
-## Support
-
-For support, email support@your-domain.com or join our [Discord community](https://discord.gg/your-server).
