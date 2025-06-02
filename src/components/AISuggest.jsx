@@ -1,150 +1,135 @@
 import { useState } from 'react'
 import { useToast } from './ui/ToastProvider'
+import { 
+  improveEducationDescription,
+  generateEducationAchievements,
+  improveExperienceDescription,
+  generateExperienceAchievements,
+  suggestSkills,
+  suggestSummary,
+  suggestLinks
+} from '../lib/ai/AIService'
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || ''
-
-// Add API configuration object
-const API_CONFIG = {
-  model: 'llama-3.3-70b-versatile',
-  temperature: 0.7,
-  max_tokens: 500,
-  top_p: 0.9,
-  frequency_penalty: 0.3,
-  presence_penalty: 0.3
-}
-
-// Fallback suggestions
 const FALLBACK_SUGGESTIONS = {
+  summary: [
+    {
+      text: "Experienced professional with a proven track record of delivering results. Strong analytical and problem-solving skills combined with excellent communication abilities.",
+      focus: "General"
+    },
+    {
+      text: "Results-driven professional who has consistently exceeded targets and implemented innovative solutions. Track record of leading successful projects and driving organizational growth.",
+      focus: "Achievements"
+    },
+    {
+      text: "Skilled professional with expertise in project management, team leadership, and strategic planning. Proven ability to optimize processes and deliver high-quality results.",
+      focus: "Skills"
+    }
+  ],
+  education: [
+    "Maintained 3.8 GPA throughout academic career",
+    "Completed senior thesis project on emerging technologies",
+    "Participated in student leadership program"
+  ],
+  experience: [
+    "Increased team productivity by 25% through process improvements",
+    "Successfully delivered 3 major projects ahead of schedule",
+    "Mentored 2 junior team members"
+  ],
   skills: [
     "JavaScript",
     "React",
     "Node.js",
-    "Python",
-    "SQL",
-    "Git",
-    "Agile Methodologies",
-    "Problem Solving",
-    "Communication",
+    "Project Management",
     "Team Leadership"
-  ],
-  summary: "Experienced professional with a strong background in technology and a proven track record of delivering results. Skilled in problem-solving, team collaboration, and project management, with a focus on driving innovation and efficiency."
+  ]
 }
 
-const getPromptForType = (type, context) => {
-  switch (type) {
-    case 'skills':
-      return `Generate a list of 10 relevant professional skills. Return them as a simple JSON array of strings.
-      Example: ["JavaScript", "React", "Node.js"]
-      
-      Context: ${context?.careerType || 'professional'}`
-    
-    case 'summary':
-      return `Write a professional summary for a ${context?.careerType || ''} professional.
-      Keep it concise (2-3 sentences) and highlight key strengths and career focus.
-      Make it impactful and specific to their field.
-      
-      Context:
-      Career Field: ${context?.careerType || 'Not specified'}
-      Location: ${context?.location || 'Not specified'}
-      
-      Return just the summary text, no formatting or additional notes.`
-    
-    default:
-      return ''
-  }
-}
-
-const AISuggest = ({ type, onSuggestionSelect, context }) => {
+const AISuggest = ({ type, data, context, onSuggestionSelect }) => {
   const [isLoading, setIsLoading] = useState(false)
   const { showToast } = useToast()
 
-  const parseResponse = (content, type) => {
-    try {
-      switch (type) {
-        case 'skills':
-          // Try to parse as JSON first
-          try {
-            const parsed = JSON.parse(content)
-            return Array.isArray(parsed) ? parsed : [parsed]
-          } catch {
-            // If not JSON, split by newlines and clean up
-            return content
-              .split('\n')
-              .map(line => line.replace(/^[-•*]\s*/, '').trim())
-              .filter(line => line.length > 0)
-              .map(skill => skill.split('(')[0].trim())
-          }
-        case 'summary':
-          // Clean up the summary text
-          return content
-            .trim()
-            .replace(/^["']|["']$/g, '') // Remove quotes if present
-            .replace(/\n+/g, ' ') // Replace multiple newlines with space
-            .trim()
-        default:
-          return content
-      }
-    } catch (error) {
-      console.error('Error parsing response:', error)
-      return null
-    }
-  }
-
   const generateSuggestions = async () => {
-    if (!GROQ_API_KEY) {
-      // Use fallback suggestions if no API key
-      onSuggestionSelect(type === 'skills' ? 
-        JSON.stringify(FALLBACK_SUGGESTIONS[type]) : 
-        FALLBACK_SUGGESTIONS[type]
-      )
-      return
+    // Use either data or context, with data taking precedence
+    const suggestionData = data || context;
+    
+    if (!suggestionData) {
+      console.error('No data or context provided for suggestions');
+      showToast('Failed to generate suggestions. Using fallback options.', 'error');
+      onSuggestionSelect(FALLBACK_SUGGESTIONS[type.toLowerCase()] || []);
+      return;
     }
 
     setIsLoading(true)
     try {
-      const response = await fetch(GROQ_API_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${GROQ_API_KEY}`
-        },
-        body: JSON.stringify({
-          ...API_CONFIG,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are a professional resume writer helping to generate content. Respond in a clear, professional format.'
-            },
-            {
-              role: 'user',
-              content: getPromptForType(type, context)
-            }
-          ]
-        })
-      })
+      let result;
+      const lowerType = type.toLowerCase();
+      
+      switch (lowerType) {
+        case 'summary':
+          result = await suggestSummary({
+            experience: suggestionData.experience || [],
+            education: suggestionData.education || [],
+            skills: suggestionData.skills || [],
+            position: suggestionData.position || '',
+            technologies: suggestionData.technologies || []
+          });
+          // For summary, pass the string directly
+          onSuggestionSelect(result);
+          break;
+        
+        case 'experiencedescription':
+          result = await improveExperienceDescription(suggestionData);
+          onSuggestionSelect(result);
+          break;
+        
+        case 'experienceachievements':
+          result = await generateExperienceAchievements(suggestionData);
+          onSuggestionSelect(result);
+          break;
+        
+        case 'educationdescription':
+          result = await improveEducationDescription(suggestionData);
+          onSuggestionSelect(result);
+          break;
+        
+        case 'educationachievements':
+          result = await generateEducationAchievements(suggestionData);
+          onSuggestionSelect(result);
+          break;
+        
+        case 'skills':
+          result = await suggestSkills({
+            position: suggestionData.position || '',
+            industry: suggestionData.industry || '',
+            level: suggestionData.level || '',
+            description: suggestionData.description || ''
+          });
+          onSuggestionSelect(result);
+          break;
 
-      if (!response.ok) {
-        throw new Error('Failed to generate suggestions')
+        case 'links':
+          result = await suggestLinks(suggestionData);
+          onSuggestionSelect(result);
+          break;
+        
+        default:
+          console.warn(`Unhandled suggestion type: ${type}`);
+          throw new Error(`Invalid suggestion type: ${type}`);
       }
 
-      const data = await response.json()
-      const suggestions = parseResponse(data.choices[0].message.content, type)
-      
-      if (suggestions) {
-        onSuggestionSelect(type === 'skills' ? JSON.stringify(suggestions) : suggestions)
-        showToast('AI suggestions generated successfully!', 'success')
+      if (result) {
+        showToast('AI suggestions generated successfully!', 'success');
+      } else {
+        console.warn('No suggestions generated for type:', type);
+        throw new Error('No suggestions generated');
       }
     } catch (error) {
-      console.error('Error generating suggestions:', error)
-      showToast('Failed to generate suggestions. Using fallback options.', 'error')
+      console.error('Error generating suggestions:', error);
+      showToast('Failed to generate suggestions. Using fallback options.', 'error');
       // Use fallback suggestions on error
-      onSuggestionSelect(type === 'skills' ? 
-        JSON.stringify(FALLBACK_SUGGESTIONS[type]) : 
-        FALLBACK_SUGGESTIONS[type]
-      )
+      onSuggestionSelect(FALLBACK_SUGGESTIONS[type.toLowerCase()] || []);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 

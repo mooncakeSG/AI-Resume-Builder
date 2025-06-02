@@ -1,59 +1,119 @@
 # AI Resume Builder
 
-A modern, responsive web application for creating professional resumes with a clean and intuitive interface.
+An intelligent resume generation system that creates customized, ATS-friendly resumes based on user inputs. The application uses AI to provide content suggestions, analyze ATS compatibility, and optimize resumes for specific job descriptions.
 
 ## Features
 
-- **Personal Details Section**: Add your basic information and professional summary
-- **Education Section**: Add multiple education entries with detailed information
-- **Experience Section**: Add work experiences with comprehensive details
-- **Skills Section**: Organize your skills into categories
-- **Real-time Preview**: See your resume take shape as you type
-- **PDF Export**: Download your resume as a PDF file
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- 🤖 AI-powered content generation and suggestions
+- 📊 ATS compatibility analysis
+- 🎯 Job description matching
+- 🔍 Industry-specific keyword optimization
+- 📝 Multiple export formats (PDF, DOCX, HTML)
+- 🎨 4 customizable templates
+- 💾 Local storage for data privacy
+- 📱 Responsive design for all devices
 
-## Tech Stack
+## Live Demo
 
-- React
-- Vite
-- Tailwind CSS
-- Radix UI Components
-- HTML2Canvas
-- jsPDF
+[View Live Demo](https://airesumebuilder.netlify.app/)
 
-## Getting Started
+## Quick Start
+
+### Prerequisites
+
+- Node.js 16.x or higher
+- npm or yarn
+- A Groq API key for AI features
+
+### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/AI-Resume-Builder.git
+git clone https://github.com/mooncakesg/ai-resume-builder.git
+cd ai-resume-builder
 ```
 
 2. Install dependencies:
 ```bash
-cd AI-Resume-Builder
 npm install
+# or
+yarn install
 ```
 
-3. Start the development server:
+3. Create a `.env` file in the project root:
+```env
+VITE_GROQ_API_KEY=your-api-key-here
+```
+
+4. Start the development server:
 ```bash
 npm run dev
+# or
+yarn dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open http://localhost:5173 in your browser
 
-## Usage
+### Building for Production
 
-1. Fill in your personal details
-2. Add your education history
-3. Add your work experience
-4. List your skills by category
-5. Preview your resume in real-time
-6. Download as PDF when you're satisfied
+```bash
+npm run build
+# or
+yarn build
+```
+
+The build output will be in the `dist` directory.
+
+## Documentation
+
+- [User Guide](docs/user-guide.md)
+- [Technical Report](docs/technical-report.md)
+- [API Documentation](docs/api-docs.md)
+
+## Project Structure
+
+```
+ai-resume-builder/
+├── src/
+│   ├── components/      # React components
+│   ├── lib/            # Core libraries
+│   ├── utils/          # Utility functions
+│   ├── styles/         # Global styles
+│   └── App.jsx         # Main application
+├── public/             # Static assets
+├── docs/              # Documentation
+└── tests/             # Test files
+```
+
+## Technologies Used
+
+- React + Vite
+- Tailwind CSS
+- Material-UI
+- Groq API
+- jsPDF
+- docx-js
+- file-saver
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- [Groq](https://groq.com) for AI capabilities
+- [Material-UI](https://mui.com) for UI components
+- [Tailwind CSS](https://tailwindcss.com) for styling
+- [jsPDF](https://github.com/parallax/jsPDF) for PDF generation
+
+## Support
+
+For support, email support@your-domain.com or join our [Discord community](https://discord.gg/your-server).

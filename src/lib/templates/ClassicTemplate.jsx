@@ -4,6 +4,19 @@ export const ClassicTemplate = ({ data, settings }) => {
   const { personal, education, experience, skills } = data;
   const { colorScheme, typography, spacing } = settings;
 
+  // Helper function to safely get the summary text
+  const getSummaryText = (summary) => {
+    if (!summary) return '';
+    if (typeof summary === 'string') return summary;
+    if (typeof summary === 'object') {
+      if (Array.isArray(summary)) {
+        return summary[0]?.text || '';
+      }
+      return summary.text || summary.summary || '';
+    }
+    return '';
+  };
+
   return (
     <div 
       className="classic-template grid grid-cols-3 gap-6"
@@ -136,7 +149,7 @@ export const ClassicTemplate = ({ data, settings }) => {
               Professional Summary
             </h2>
             <p className="text-sm leading-relaxed">
-              {personal.summary}
+              {getSummaryText(personal.summary)}
             </p>
           </section>
         )}

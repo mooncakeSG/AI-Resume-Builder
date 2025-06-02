@@ -1,116 +1,46 @@
 import React from 'react';
 
-export const MinimalTemplate = ({ data, settings }) => {
-  const { personal, education, experience, skills } = data;
-  const { colorScheme, typography, spacing } = settings;
+const MinimalTemplate = ({ data }) => {
+  const { personal, experience, education, skills } = data;
+  const fullName = personal ? `${personal.firstName} ${personal.lastName}` : '';
 
   return (
-    <div 
-      className="minimal-template"
-      style={{
-        fontFamily: typography.fontFamily,
-        color: colorScheme.secondary,
-        '--section-gap': spacing.sectionGap,
-        '--item-gap': spacing.itemGap,
-      }}
-    >
-      {/* Header Section */}
-      <header className="mb-8">
-        <h1 
-          className="text-4xl font-bold mb-2"
-          style={{ color: colorScheme.primary }}
-        >
-          {personal?.firstName} {personal?.lastName}
-        </h1>
-        <div className="space-y-1">
-          {personal?.email && (
-            <a href={`mailto:${personal.email}`} className="block text-sm hover:text-blue-600">
-              {personal.email}
-            </a>
-          )}
-          {personal?.phone && (
-            <div className="text-sm">
-              {personal.phone}
-            </div>
-          )}
-          {personal?.location && (
-            <div className="text-sm">
-              {personal.location}
-            </div>
-          )}
+    <div className="p-8 max-w-3xl mx-auto bg-white">
+      <header className="mb-8 border-b pb-4">
+        <h1 className="text-2xl font-normal text-gray-900 mb-1">{fullName}</h1>
+        <div className="text-sm text-gray-600 space-x-2">
+          {personal?.email && <span>{personal.email}</span>}
+          {personal?.phone && <span>• {personal.phone}</span>}
+          {personal?.location && <span>• {personal.location}</span>}
         </div>
-        {personal?.links && Object.entries(personal.links).length > 0 && (
-          <div className="flex gap-4 mt-2">
-            {Object.entries(personal.links).map(([platform, url]) => (
-              url && (
-                <a
-                  key={platform}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm hover:text-blue-600"
-                >
-                  {platform.charAt(0).toUpperCase() + platform.slice(1)}
-                </a>
-              )
-            ))}
-          </div>
-        )}
       </header>
 
-      {/* Summary Section */}
       {personal?.summary && (
-        <section className="mb-8">
-          <h2 
-            className="text-lg font-medium mb-2 uppercase tracking-wide"
-            style={{ color: colorScheme.primary }}
-          >
-            About
-          </h2>
-          <p className="text-sm leading-relaxed">
+        <section className="mb-6">
+          <p className="text-sm text-gray-700 leading-relaxed">
             {personal.summary}
           </p>
         </section>
       )}
 
-      {/* Experience Section */}
       {experience?.length > 0 && (
-        <section className="mb-8">
-          <h2 
-            className="text-lg font-medium mb-4 uppercase tracking-wide"
-            style={{ color: colorScheme.primary }}
-          >
-            Experience
-          </h2>
-          <div className="space-y-6">
+        <section className="mb-6">
+          <h2 className="text-sm uppercase tracking-wide text-gray-500 mb-3">Experience</h2>
+          <div className="space-y-4">
             {experience.map((exp, index) => (
-              <div key={index} className="text-sm">
-                <div className="flex justify-between items-start mb-1">
-                  <div>
-                    <h3 className="font-medium">{exp.position}</h3>
-                    <div className="text-sm opacity-75">{exp.company}</div>
-                  </div>
-                  <div className="text-right text-sm opacity-75">
-                    {exp.startDate && (
-                      <span>
-                        {new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        {' - '}
-                        {exp.current ? 'Present' : exp.endDate ? 
-                          new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                      </span>
-                    )}
-                  </div>
+              <div key={index}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3 className="text-base font-medium text-gray-900">{exp.position}</h3>
+                  <span className="text-sm text-gray-500">
+                    {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                  </span>
                 </div>
-                {exp.location && (
-                  <div className="text-sm opacity-75 mb-2">{exp.location}</div>
-                )}
-                {exp.description && (
-                  <p className="mb-2 text-sm">{exp.description}</p>
-                )}
+                <div className="text-sm text-gray-700 mb-1">{exp.company}</div>
+                <p className="text-sm text-gray-600 mb-2">{exp.description}</p>
                 {exp.achievements?.length > 0 && (
-                  <ul className="list-disc list-inside space-y-1 opacity-90">
+                  <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                     {exp.achievements.map((achievement, i) => (
-                      <li key={i} className="text-sm">{achievement}</li>
+                      <li key={i}>{achievement}</li>
                     ))}
                   </ul>
                 )}
@@ -120,64 +50,35 @@ export const MinimalTemplate = ({ data, settings }) => {
         </section>
       )}
 
-      {/* Education Section */}
       {education?.length > 0 && (
-        <section className="mb-8">
-          <h2 
-            className="text-lg font-medium mb-4 uppercase tracking-wide"
-            style={{ color: colorScheme.primary }}
-          >
-            Education
-          </h2>
+        <section className="mb-6">
+          <h2 className="text-sm uppercase tracking-wide text-gray-500 mb-3">Education</h2>
           <div className="space-y-4">
             {education.map((edu, index) => (
-              <div key={index} className="text-sm">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-medium">{edu.degree}</h3>
-                    <div className="opacity-75">{edu.institution}</div>
-                  </div>
-                  <div className="text-right opacity-75">
-                    {edu.startDate && (
-                      <span>
-                        {new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        {' - '}
-                        {edu.current ? 'Present' : edu.endDate ? 
-                          new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                      </span>
-                    )}
-                  </div>
+              <div key={index}>
+                <div className="flex justify-between items-baseline mb-1">
+                  <h3 className="text-base font-medium text-gray-900">{edu.degree}</h3>
+                  <span className="text-sm text-gray-500">
+                    {edu.startDate} - {edu.endDate}
+                  </span>
                 </div>
-                {edu.location && (
-                  <div className="text-sm opacity-75">{edu.location}</div>
-                )}
-                {edu.achievements?.length > 0 && (
-                  <ul className="list-disc list-inside mt-2 space-y-1 opacity-90">
-                    {edu.achievements.map((achievement, i) => (
-                      <li key={i} className="text-sm">{achievement}</li>
-                    ))}
-                  </ul>
-                )}
+                <div className="text-sm text-gray-700 mb-1">{edu.school}</div>
+                {edu.field && <div className="text-sm text-gray-600 mb-1">Field: {edu.field}</div>}
+                {edu.description && <p className="text-sm text-gray-600 mb-2">{edu.description}</p>}
               </div>
             ))}
           </div>
         </section>
       )}
 
-      {/* Skills Section */}
       {skills?.length > 0 && (
         <section>
-          <h2 
-            className="text-lg font-medium mb-3 uppercase tracking-wide"
-            style={{ color: colorScheme.primary }}
-          >
-            Skills
-          </h2>
+          <h2 className="text-sm uppercase tracking-wide text-gray-500 mb-3">Skills</h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
               <span
                 key={index}
-                className="px-3 py-1 border border-gray-200 rounded-sm text-sm"
+                className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded"
               >
                 {skill}
               </span>
@@ -185,6 +86,26 @@ export const MinimalTemplate = ({ data, settings }) => {
           </div>
         </section>
       )}
+
+      {data.references?.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-sm uppercase tracking-wide text-gray-500 mb-3">References</h2>
+          <div className="space-y-4">
+            {data.references.map((reference, index) => (
+              <div key={index} className="border-l-2 border-gray-200 pl-4">
+                <h3 className="text-base font-medium text-gray-900">{reference.name}</h3>
+                <p className="text-sm text-gray-700">{reference.position} at {reference.company}</p>
+                <div className="text-sm text-gray-600 mt-1">
+                  <p>{reference.email} • {reference.phone}</p>
+                  <p className="text-sm text-gray-500 italic">{reference.relationship}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
-}; 
+};
+
+export default MinimalTemplate; 

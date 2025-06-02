@@ -1,23 +1,31 @@
 import { useState } from 'react';
 import { useResume } from '../lib/data/ResumeContext';
+import { useTemplate } from '../lib/templates/TemplateContext';
 import Personal from './Personal';
 import Education from './Education';
 import Experience from './Experience';
 import Skills from './Skills';
+import References from './References';
+import CoverLetter from './CoverLetter';
 import Preview from './Preview';
 import TemplateSwitcher from './TemplateSwitcher';
 import ProfileManager from './ProfileManager';
 import AISuggestions from './AISuggestions';
+import ATSChecker from './ATSChecker';
+import JobMatcher from './JobMatcher';
 
 const Layout = ({ children }) => {
   const [activeSection, setActiveSection] = useState('personal');
   const { currentProfile, updateCurrentProfile } = useResume();
+  const { currentTemplate, changeTemplate } = useTemplate();
 
   const sections = [
     { id: 'personal', label: 'Personal Details', component: Personal },
     { id: 'education', label: 'Education', component: Education },
     { id: 'experience', label: 'Experience', component: Experience },
     { id: 'skills', label: 'Skills', component: Skills },
+    { id: 'references', label: 'References', component: References },
+    { id: 'coverLetter', label: 'Cover Letter', component: CoverLetter },
   ];
 
   const handleSectionChange = (sectionId) => {
@@ -38,7 +46,10 @@ const Layout = ({ children }) => {
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900">AI Resume Builder</h1>
             <div className="flex gap-4">
-              <TemplateSwitcher />
+              <TemplateSwitcher 
+                selectedTemplate={currentTemplate}
+                onTemplateChange={changeTemplate}
+              />
             </div>
           </div>
         </div>
@@ -50,12 +61,12 @@ const Layout = ({ children }) => {
             <ProfileManager />
             
             <nav className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="flex divide-x divide-gray-200">
+              <div className="grid grid-cols-3 sm:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-gray-200">
                 {sections.map(({ id, label }) => (
                   <button
                     key={id}
                     onClick={() => handleSectionChange(id)}
-                    className={`flex-1 px-4 py-3 text-sm font-medium ${
+                    className={`px-4 py-3 text-sm font-medium ${
                       activeSection === id
                         ? 'bg-blue-50 text-blue-700'
                         : 'text-gray-700 hover:bg-gray-50'
@@ -67,12 +78,12 @@ const Layout = ({ children }) => {
               </div>
             </nav>
 
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow rounded-lg">
               {sections.map(({ id, component: Component }) => (
                 activeSection === id && (
                   <Component
                     key={id}
-                    data={currentProfile.data[id] || (id === 'education' || id === 'experience' || id === 'skills' ? [] : {})}
+                    data={currentProfile.data[id] || (id === 'education' || id === 'experience' || id === 'skills' || id === 'references' ? [] : {})}
                     onChange={(data) => handleDataChange(id, data)}
                   />
                 )
@@ -80,10 +91,18 @@ const Layout = ({ children }) => {
             </div>
 
             <AISuggestions />
+            
+            <div className="grid grid-cols-1 gap-6">
+              <ATSChecker resumeData={currentProfile.data} />
+              <JobMatcher resumeData={currentProfile.data} />
+            </div>
           </div>
 
           <div className="lg:sticky lg:top-8">
-            <Preview data={currentProfile.data} />
+            <Preview 
+              data={currentProfile.data} 
+              templateId={currentTemplate}
+            />
           </div>
         </div>
       </main>

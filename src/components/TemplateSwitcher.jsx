@@ -1,36 +1,58 @@
-import { useTemplate } from '../lib/templates/TemplateContext';
+import { useState } from 'react';
 
-export default function TemplateSwitcher() {
-  const { currentTemplate, changeTemplate, TEMPLATE_TYPES } = useTemplate();
+const TEMPLATES = [
+  { id: 'modern', name: 'Modern' },
+  { id: 'minimal', name: 'Minimal' },
+  { id: 'professional', name: 'Professional' },
+  { id: 'classic', name: 'Classic' }
+];
+
+const TemplateSwitcher = ({ selectedTemplate, onTemplateChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleTemplateSelect = (templateId) => {
+    onTemplateChange(templateId);
+    setIsOpen(false);
+  };
+
+  const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate) || TEMPLATES[0];
 
   return (
-    <div className="w-full p-4 bg-white rounded-lg shadow-sm">
-      <h3 className="text-lg font-semibold mb-4">Resume Template</h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {Object.values(TEMPLATE_TYPES).map((template) => (
-          <button
-            key={template}
-            onClick={() => changeTemplate(template)}
-            className={`
-              p-4 rounded-lg border-2 transition-all duration-200
-              ${currentTemplate === template 
-                ? 'border-blue-500 bg-blue-50' 
-                : 'border-gray-200 hover:border-blue-300'
-              }
-            `}
-          >
-            <div className="aspect-w-8 aspect-h-11 mb-2">
-              {/* Template Preview Placeholder */}
-              <div className="w-full h-full bg-gray-100 rounded flex items-center justify-center">
-                <span className="text-xs text-gray-500 capitalize">{template}</span>
-              </div>
-            </div>
-            <span className="block text-sm font-medium capitalize text-center">
-              {template}
-            </span>
-          </button>
-        ))}
-      </div>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="bg-white px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center gap-2"
+      >
+        <span>{currentTemplate.name} Template</span>
+        <svg
+          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg z-50">
+          <div className="py-1">
+            {TEMPLATES.map(template => (
+              <button
+                key={template.id}
+                onClick={() => handleTemplateSelect(template.id)}
+                className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
+                  selectedTemplate === template.id ? 'bg-blue-50 text-blue-700' : ''
+                }`}
+              >
+                {template.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
-} 
+};
+
+export default TemplateSwitcher; 

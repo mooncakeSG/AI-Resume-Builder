@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import AISuggest from './AISuggest'
 
-const Skills = ({ data = [], onChange }) => {
+const Skills = ({ data = [], onChange, experience = [] }) => {
   const [skills, setSkills] = useState(data)
 
   useEffect(() => {
@@ -24,14 +24,27 @@ const Skills = ({ data = [], onChange }) => {
 
   const handleSkillsSuggestion = (suggestion) => {
     try {
-      const suggestedSkills = JSON.parse(suggestion)
+      // If suggestion is already an array, use it directly
+      if (Array.isArray(suggestion)) {
+        setSkills(prev => {
+          const newSkills = [...prev]
+          suggestion.forEach(skill => {
+            if (!newSkills.includes(skill)) {
+              newSkills.push(skill)
+            }
+          })
+          return newSkills
+        })
+        return
+      }
+
+      // Otherwise, try to parse it as JSON
+      const suggestedSkills = suggestion?.skills || []
       setSkills(prev => {
         const newSkills = [...prev]
         suggestedSkills.forEach(skill => {
-          // Handle both string and object formats from AI suggestions
-          const skillName = typeof skill === 'string' ? skill : skill.name
-          if (!newSkills.includes(skillName)) {
-            newSkills.push(skillName)
+          if (!newSkills.includes(skill)) {
+            newSkills.push(skill)
           }
         })
         return newSkills
@@ -49,6 +62,33 @@ const Skills = ({ data = [], onChange }) => {
     setSkills(prev => prev.filter((_, i) => i !== index))
   }
 
+  // Get context from experience entries
+  const getSkillsContext = () => {
+    const latestExperience = experience[0] || {}
+    return {
+      position: latestExperience.position || '',
+      industry: latestExperience.industry || '',
+      level: getExperienceLevel(experience),
+      description: experience.map(exp => exp.description || '').join(' ')
+    }
+  }
+
+  // Helper to determine experience level
+  const getExperienceLevel = (experience) => {
+    const totalYears = experience.reduce((total, exp) => {
+      if (!exp.startDate) return total
+      const start = new Date(exp.startDate)
+      const end = exp.current ? new Date() : (exp.endDate ? new Date(exp.endDate) : new Date())
+      const years = (end - start) / (1000 * 60 * 60 * 24 * 365)
+      return total + years
+    }, 0)
+
+    if (totalYears < 2) return 'Entry Level'
+    if (totalYears < 5) return 'Mid Level'
+    if (totalYears < 8) return 'Senior Level'
+    return 'Expert Level'
+  }
+
   return (
     <div className="space-y-8 bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between border-b pb-4">
@@ -58,10 +98,8 @@ const Skills = ({ data = [], onChange }) => {
         </div>
         <AISuggest
           type="skills"
+          data={getSkillsContext()}
           onSuggestionSelect={handleSkillsSuggestion}
-          context={{
-            experience: data.experience
-          }}
         />
       </div>
 

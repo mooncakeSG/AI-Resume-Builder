@@ -2,6 +2,7 @@ import { useRef, useState, memo } from 'react'
 import { useToast } from './ui/ToastProvider'
 import TemplateManager from '../lib/templates/TemplateManager'
 import { generatePDF } from '../lib/utils/pdfGenerator'
+import ExportButton from './ExportButton'
 
 // A4 dimensions in mm
 const A4_DIMENSIONS = {
@@ -17,10 +18,11 @@ const MARGINS = {
   RIGHT: 10,
 };
 
-const Preview = memo(({ data }) => {
+const Preview = memo(({ data, templateId }) => {
   const previewRef = useRef(null)
   const { showToast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
+  const [viewMode, setViewMode] = useState('resume') // 'resume' or 'coverLetter'
 
   const handlePrint = () => {
     window.print();
@@ -46,8 +48,8 @@ const Preview = memo(({ data }) => {
       
       // Save the PDF with appropriate filename
       const fileName = data.personal?.firstName && data.personal?.lastName
-        ? `${data.personal.firstName.toLowerCase()}_${data.personal.lastName.toLowerCase()}_resume.pdf`
-        : 'resume.pdf';
+        ? `${data.personal.firstName.toLowerCase()}_${data.personal.lastName.toLowerCase()}_${viewMode}.pdf`
+        : `${viewMode}.pdf`;
       
       pdf.save(fileName);
       showToast('PDF downloaded successfully!', 'success');
@@ -72,7 +74,31 @@ const Preview = memo(({ data }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg overflow-hidden" ref={previewRef}>
       <div className="p-4 border-b border-gray-200 flex justify-between items-center no-print">
-        <h2 className="text-lg font-semibold text-gray-800">Preview</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-lg font-semibold text-gray-800">Preview</h2>
+          <div className="flex rounded-md shadow-sm">
+            <button
+              onClick={() => setViewMode('resume')}
+              className={`px-4 py-2 text-sm font-medium ${
+                viewMode === 'resume'
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+              } border rounded-l-md`}
+            >
+              Resume
+            </button>
+            <button
+              onClick={() => setViewMode('coverLetter')}
+              className={`px-4 py-2 text-sm font-medium ${
+                viewMode === 'coverLetter'
+                  ? 'bg-blue-50 text-blue-700 border-blue-200'
+                  : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+              } border-t border-b border-r rounded-r-md`}
+            >
+              Cover Letter
+            </button>
+          </div>
+        </div>
         <div className="flex gap-2">
           <button
             onClick={handlePrint}
@@ -81,21 +107,11 @@ const Preview = memo(({ data }) => {
           >
             Print
           </button>
-          <button
-            onClick={downloadPDF}
-            disabled={isLoading}
-            data-action="download-pdf"
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <span className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-                Generating...
-              </>
-            ) : (
-              'Download PDF'
-            )}
-          </button>
+          <ExportButton 
+            resumeData={data} 
+            templateId={templateId}
+            documentType={viewMode}
+          />
         </div>
       </div>
       
@@ -111,7 +127,10 @@ const Preview = memo(({ data }) => {
             margin: '0 auto',
           }}
         >
-          <TemplateManager data={data} />
+          <TemplateManager 
+            data={data} 
+            type={viewMode}
+          />
         </div>
       </div>
     </div>

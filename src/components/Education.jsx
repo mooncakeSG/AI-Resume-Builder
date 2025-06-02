@@ -214,55 +214,51 @@ const Education = ({ data, onChange }) => {
                 Description
               </label>
               <AISuggest
-                type="education_description"
+                type="educationdescription"
+                data={education}
                 onSuggestionSelect={(suggestion) => handleDescriptionSuggestion(index, suggestion)}
-                context={{
-                  school: education.school,
-                  degree: education.degree,
-                  field: education.field
-                }}
               />
             </div>
             <textarea
               value={education.description || ''}
               onChange={(e) => handleChange(index, 'description', e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg min-h-[100px]"
-              placeholder="Describe your educational experience..."
+              className="w-full p-3 border border-gray-200 rounded-lg"
+              rows={4}
+              placeholder="Describe your academic experience, relevant coursework, and key accomplishments"
             />
           </div>
 
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700">
                 Key Achievements
               </label>
               <AISuggest
-                type="education_achievement"
-                onSuggestionSelect={(suggestion) => handleAchievementsSuggestion(index, suggestion)}
-                context={{
-                  school: education.school,
-                  degree: education.degree,
-                  field: education.field
+                type="educationachievements"
+                data={education}
+                onSuggestionSelect={(suggestions) => {
+                  if (Array.isArray(suggestions)) {
+                    suggestions.forEach(suggestion => handleAchievementsSuggestion(index, suggestion));
+                  }
                 }}
               />
             </div>
             <div className="space-y-2">
               {education.achievements?.map((achievement, achievementIndex) => (
-                <div key={achievementIndex} className="flex items-center gap-2 group">
-                  <input
-                    type="text"
+                <div key={achievementIndex} className="flex items-start gap-2 group">
+                  <textarea
                     value={achievement}
                     onChange={(e) => {
-                      const newList = [...educationList]
-                      newList[index].achievements[achievementIndex] = e.target.value
-                      setEducationList(newList)
+                      const newList = [...educationList];
+                      newList[index].achievements[achievementIndex] = e.target.value;
+                      setEducationList(newList);
                     }}
-                    className="flex-1 p-3 border border-gray-200 rounded-lg"
-                    placeholder="Enter achievement"
+                    className="flex-grow p-2 border border-gray-200 rounded-lg text-sm"
+                    rows={2}
                   />
                   <button
                     onClick={() => removeAchievement(index, achievementIndex)}
-                    className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -270,6 +266,19 @@ const Education = ({ data, onChange }) => {
                   </button>
                 </div>
               ))}
+              <button
+                onClick={() => {
+                  const newList = [...educationList];
+                  newList[index].achievements = [...(newList[index].achievements || []), ''];
+                  setEducationList(newList);
+                }}
+                className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Add Achievement
+              </button>
             </div>
           </div>
         </div>
