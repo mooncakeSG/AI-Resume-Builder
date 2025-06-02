@@ -4,7 +4,10 @@ import './index.css'
 import App from './App.jsx'
 import { ToastProvider } from './components/ui/ToastProvider'
 
-createRoot(document.getElementById('root')).render(
+const container = document.getElementById('root')
+container.className = 'light' // Add default theme class
+
+createRoot(container).render(
   <StrictMode>
     <ToastProvider>
       <App />

@@ -19,15 +19,17 @@ const App = () => {
   });
 
   return (
-    <ToastProvider>
-      <ResumeProvider>
-        <TemplateProvider>
-          <Layout>
-            <KeyboardShortcutsHelp />
-          </Layout>
-        </TemplateProvider>
-      </ResumeProvider>
-    </ToastProvider>
+    <div className="min-h-screen bg-background font-sans antialiased">
+      <ToastProvider>
+        <ResumeProvider>
+          <TemplateProvider>
+            <Layout>
+              <KeyboardShortcutsHelp />
+            </Layout>
+          </TemplateProvider>
+        </ResumeProvider>
+      </ToastProvider>
+    </div>
   );
 };
 

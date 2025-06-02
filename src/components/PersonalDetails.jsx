@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import AISuggest from './AISuggest'
 import Summary from './Summary'
+import { Input } from './ui/input'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from './ui/card'
 
 const PersonalDetails = ({ data = {}, onChange }) => {
   const [errors, setErrors] = useState({})
@@ -11,7 +13,6 @@ const PersonalDetails = ({ data = {}, onChange }) => {
   }
 
   const handleSummaryChange = ({ summary }) => {
-    // Ensure we're always storing a string value
     let summaryText = '';
     
     if (typeof summary === 'string') {
@@ -69,7 +70,7 @@ const PersonalDetails = ({ data = {}, onChange }) => {
   }
 
   const validateUrl = (url) => {
-    if (!url) return true // Empty URLs are allowed
+    if (!url) return true
     try {
       new URL(url)
       return true
@@ -101,164 +102,160 @@ const PersonalDetails = ({ data = {}, onChange }) => {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800">Personal Details</h2>
-        <p className="text-sm text-gray-500 mt-1">Add your contact information</p>
-      </div>
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={data.name || ''}
-              onChange={(e) => handleChange('name', e.target.value)}
-              className={`w-full p-3 border rounded-lg ${errors.name ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder="John Doe"
-            />
-            {errors.name && (
-              <p className="text-sm text-red-600">{errors.name}</p>
-            )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Personal Details</CardTitle>
+          <CardDescription>Add your contact information</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="text"
+                value={data.name || ''}
+                onChange={(e) => handleChange('name', e.target.value)}
+                error={errors.name}
+                placeholder="John Doe"
+              />
+              {errors.name && (
+                <p className="text-sm text-red-600">{errors.name}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Job Title
+              </label>
+              <Input
+                type="text"
+                value={data.title || ''}
+                onChange={(e) => handleChange('title', e.target.value)}
+                placeholder="e.g., Software Engineer"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Email <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="email"
+                value={data.email || ''}
+                onChange={(e) => handleChange('email', e.target.value)}
+                error={errors.email}
+                placeholder="john@example.com"
+              />
+              {errors.email && (
+                <p className="text-sm text-red-600">{errors.email}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <Input
+                type="tel"
+                value={data.phone || ''}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                error={errors.phone}
+                placeholder="+1 (555) 123-4567"
+              />
+              {errors.phone && (
+                <p className="text-sm text-red-600">{errors.phone}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Location
+              </label>
+              <Input
+                type="text"
+                value={data.location || ''}
+                onChange={(e) => handleChange('location', e.target.value)}
+                placeholder="City, Country"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Industry
+              </label>
+              <Input
+                type="text"
+                value={data.industry || ''}
+                onChange={(e) => handleChange('industry', e.target.value)}
+                placeholder="e.g., Technology, Healthcare"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Job Title
-            </label>
-            <input
-              type="text"
-              value={data.title || ''}
-              onChange={(e) => handleChange('title', e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg"
-              placeholder="e.g., Software Engineer"
-            />
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Professional Links
+              </label>
+              <AISuggest
+                type="links"
+                data={data}
+                onSuggestionSelect={handleLinksSuggestion}
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  LinkedIn
+                </label>
+                <Input
+                  type="url"
+                  value={data.links?.linkedin || ''}
+                  onChange={(e) => handleLinkChange('linkedin', e.target.value)}
+                  error={errors.linkedinLink}
+                  placeholder="https://linkedin.com/in/username"
+                />
+                {errors.linkedinLink && (
+                  <p className="text-sm text-red-600">{errors.linkedinLink}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  GitHub
+                </label>
+                <Input
+                  type="url"
+                  value={data.links?.github || ''}
+                  onChange={(e) => handleLinkChange('github', e.target.value)}
+                  error={errors.githubLink}
+                  placeholder="https://github.com/username"
+                />
+                {errors.githubLink && (
+                  <p className="text-sm text-red-600">{errors.githubLink}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Portfolio
+                </label>
+                <Input
+                  type="url"
+                  value={data.links?.portfolio || ''}
+                  onChange={(e) => handleLinkChange('portfolio', e.target.value)}
+                  error={errors.portfolioLink}
+                  placeholder="https://yourportfolio.com"
+                />
+                {errors.portfolioLink && (
+                  <p className="text-sm text-red-600">{errors.portfolioLink}</p>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              value={data.email || ''}
-              onChange={(e) => handleChange('email', e.target.value)}
-              className={`w-full p-3 border rounded-lg ${errors.email ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder="john@example.com"
-            />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              value={data.phone || ''}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              className={`w-full p-3 border rounded-lg ${errors.phone ? 'border-red-500' : 'border-gray-200'}`}
-              placeholder="+1 (555) 123-4567"
-            />
-            {errors.phone && (
-              <p className="text-sm text-red-600">{errors.phone}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Location
-            </label>
-            <input
-              type="text"
-              value={data.location || ''}
-              onChange={(e) => handleChange('location', e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg"
-              placeholder="City, Country"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Industry
-            </label>
-            <input
-              type="text"
-              value={data.industry || ''}
-              onChange={(e) => handleChange('industry', e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg"
-              placeholder="e.g., Technology, Healthcare"
-            />
-          </div>
-        </div>
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Professional Links
-            </label>
-            <AISuggest
-              type="links"
+          <div className="mt-6">
+            <Summary
+              value={data.summary || ''}
+              onChange={handleSummaryChange}
               data={data}
-              onSuggestionSelect={handleLinksSuggestion}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                LinkedIn Profile
-              </label>
-              <input
-                type="url"
-                value={data.links?.linkedin || ''}
-                onChange={(e) => handleLinkChange('linkedin', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors.linkedinLink ? 'border-red-500' : 'border-gray-200'}`}
-                placeholder="https://linkedin.com/in/..."
-              />
-              {errors.linkedinLink && (
-                <p className="text-sm text-red-600">{errors.linkedinLink}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                GitHub Profile
-              </label>
-              <input
-                type="url"
-                value={data.links?.github || ''}
-                onChange={(e) => handleLinkChange('github', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors.githubLink ? 'border-red-500' : 'border-gray-200'}`}
-                placeholder="https://github.com/..."
-              />
-              {errors.githubLink && (
-                <p className="text-sm text-red-600">{errors.githubLink}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Portfolio Website
-              </label>
-              <input
-                type="url"
-                value={data.links?.portfolio || ''}
-                onChange={(e) => handleLinkChange('portfolio', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors.portfolioLink ? 'border-red-500' : 'border-gray-200'}`}
-                placeholder="https://..."
-              />
-              {errors.portfolioLink && (
-                <p className="text-sm text-red-600">{errors.portfolioLink}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-      <Summary
-        data={{
-          summary: data.summary || ''
-        }}
-        context={{
-          industry: data.industry,
-          title: data.title
-        }}
-        onChange={handleSummaryChange}
-      />
+        </CardContent>
+      </Card>
     </div>
   )
 }

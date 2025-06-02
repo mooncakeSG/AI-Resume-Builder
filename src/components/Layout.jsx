@@ -13,6 +13,9 @@ import ProfileManager from './ProfileManager';
 import AISuggestions from './AISuggestions';
 import ATSChecker from './ATSChecker';
 import JobMatcher from './JobMatcher';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Card, CardContent } from './ui/card';
+import { Button } from './ui/button';
 
 const Layout = ({ children }) => {
   const [activeSection, setActiveSection] = useState('personal');
@@ -28,10 +31,6 @@ const Layout = ({ children }) => {
     { id: 'coverLetter', label: 'Cover Letter', component: CoverLetter },
   ];
 
-  const handleSectionChange = (sectionId) => {
-    setActiveSection(sectionId);
-  };
-
   const handleDataChange = (sectionId, data) => {
     updateCurrentProfile({
       ...currentProfile.data,
@@ -40,74 +39,90 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">AI Resume Builder</h1>
-            <div className="flex gap-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-background/95 relative overflow-hidden">
+      <div className="absolute inset-0 bg-grid-slate-100/50 [mask-image:linear-gradient(0deg,transparent,black)] dark:bg-grid-slate-700/25" />
+      <div className="relative">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container flex h-14 items-center">
+            <div className="mr-4 flex">
+              <h1 className="text-xl font-bold">AI Resume Builder</h1>
+            </div>
+            <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
               <TemplateSwitcher 
                 selectedTemplate={currentTemplate}
                 onTemplateChange={changeTemplate}
               />
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <ProfileManager />
-            
-            <nav className="bg-white shadow rounded-lg overflow-hidden">
-              <div className="grid grid-cols-3 sm:grid-cols-6 divide-x divide-y sm:divide-y-0 divide-gray-200">
-                {sections.map(({ id, label }) => (
-                  <button
-                    key={id}
-                    onClick={() => handleSectionChange(id)}
-                    className={`px-4 py-3 text-sm font-medium ${
-                      activeSection === id
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
+        <main className="container py-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <Card className="border-2 border-primary/20">
+                <CardContent className="p-4">
+                  <ProfileManager />
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardContent className="p-0">
+                  <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
+                    <TabsList className="w-full grid grid-cols-3 lg:grid-cols-6 gap-px p-1">
+                      {sections.map(({ id, label }) => (
+                        <TabsTrigger key={id} value={id} className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                          {label}
+                        </TabsTrigger>
+                      ))}
+                    </TabsList>
+                    {sections.map(({ id, component: Component }) => (
+                      <TabsContent key={id} value={id} className="p-4">
+                        <Component
+                          data={currentProfile.data[id] || (id === 'education' || id === 'experience' || id === 'skills' || id === 'references' ? [] : {})}
+                          onChange={(data) => handleDataChange(id, data)}
+                        />
+                      </TabsContent>
+                    ))}
+                  </Tabs>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 gap-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <AISuggestions />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <ATSChecker resumeData={currentProfile.data} />
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardContent className="p-4">
+                    <JobMatcher resumeData={currentProfile.data} />
+                  </CardContent>
+                </Card>
               </div>
-            </nav>
+            </div>
 
-            <div className="bg-white shadow rounded-lg">
-              {sections.map(({ id, component: Component }) => (
-                activeSection === id && (
-                  <Component
-                    key={id}
-                    data={currentProfile.data[id] || (id === 'education' || id === 'experience' || id === 'skills' || id === 'references' ? [] : {})}
-                    onChange={(data) => handleDataChange(id, data)}
+            <div className="lg:sticky lg:top-[5rem]">
+              <Card>
+                <CardContent className="p-4">
+                  <Preview 
+                    data={currentProfile.data} 
+                    templateId={currentTemplate}
                   />
-                )
-              ))}
-            </div>
-
-            <AISuggestions />
-            
-            <div className="grid grid-cols-1 gap-6">
-              <ATSChecker resumeData={currentProfile.data} />
-              <JobMatcher resumeData={currentProfile.data} />
+                </CardContent>
+              </Card>
             </div>
           </div>
+        </main>
 
-          <div className="lg:sticky lg:top-8">
-            <Preview 
-              data={currentProfile.data} 
-              templateId={currentTemplate}
-            />
-          </div>
-        </div>
-      </main>
-
-      {children}
+        {children}
+      </div>
     </div>
   );
 };
