@@ -15,15 +15,18 @@ const ExportButton = ({ resumeData, templateId, documentType = 'resume' }) => {
   const handleExport = async (format) => {
     try {
       setIsLoading(true);
+      // Convert documentType to match export function expectations
+      const exportType = documentType === 'coverLetter' ? 'cover-letter' : documentType;
+      
       switch (format) {
         case 'pdf':
-          await exportToPDF(resumeData, templateId, documentType);
+          await exportToPDF(resumeData, templateId, exportType);
           break;
         case 'docx':
-          await exportToDOCX(resumeData, templateId, documentType);
+          await exportToDOCX(resumeData, templateId, exportType);
           break;
         case 'html':
-          await exportToHTML(resumeData, templateId, documentType);
+          await exportToHTML(resumeData, templateId, exportType);
           break;
         default:
           console.error('Unsupported format:', format);
@@ -33,6 +36,17 @@ const ExportButton = ({ resumeData, templateId, documentType = 'resume' }) => {
     } finally {
       setIsLoading(false);
       setIsOpen(false);
+    }
+  };
+
+  const getDocumentTypeDisplay = () => {
+    switch (documentType) {
+      case 'coverLetter':
+        return 'Cover Letter';
+      case 'references':
+        return 'References';
+      default:
+        return 'Resume';
     }
   };
 
@@ -50,7 +64,7 @@ const ExportButton = ({ resumeData, templateId, documentType = 'resume' }) => {
           </>
         ) : (
           <>
-            <span>Export {documentType === 'coverLetter' ? 'Cover Letter' : 'Resume'}</span>
+            <span>Export {getDocumentTypeDisplay()}</span>
             <svg
               className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               fill="none"

@@ -1,10 +1,21 @@
 import { Groq } from 'groq-sdk';
 
-// Initialize Groq client
-const groq = new Groq({
-  apiKey: import.meta.env.VITE_GROQ_API_KEY,
-  dangerouslyAllowBrowser: true // Enable browser usage
-});
+// Initialize Groq client with proper error handling
+let groq = null;
+
+try {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  if (!apiKey) {
+    console.error('GROQ API key not found. Please add VITE_GROQ_API_KEY to your .env file.');
+  } else {
+    groq = new Groq({
+      apiKey,
+      dangerouslyAllowBrowser: true // Enable browser usage
+    });
+  }
+} catch (error) {
+  console.error('Error initializing Groq client:', error);
+}
 
 // AI prompts for different suggestion types
 const PROMPTS = {
@@ -95,7 +106,42 @@ const PROMPTS = {
   ]
 }`,
 
-  SUMMARY: `Generate a professional summary based on the provided experience, education, and skills. Focus on key achievements and value proposition. Return ONLY the summary text, with no additional formatting or explanation.`,
+  SUMMARY: `Create a compelling professional summary based on the provided information. Use all available information to create a tailored, specific summary.
+
+Guidelines:
+1. Career Field Focus:
+   - Highlight skills and experiences relevant to the specified career field
+   - Use industry-specific terminology
+   - Align achievements with industry standards
+
+2. Experience Level:
+   - For 0-2 years: Focus on education, skills, and potential
+   - For 3-5 years: Emphasize rapid growth and key achievements
+   - For 5+ years: Highlight leadership and strategic impact
+
+3. Content Integration:
+   - Include relevant skills from the skills list
+   - Reference significant education achievements
+   - Mention notable work experiences
+   - Incorporate location if relevant to the role
+
+4. Style:
+   - Keep it 2-4 sentences
+   - Be specific and quantifiable
+   - Focus on value and impact
+   - Maintain professional tone
+   - Avoid generic statements
+
+Input context includes:
+- careerType: Specific career field
+- experience: Array of work experiences
+- education: Array of education entries
+- skills: Array of skills
+- location: Geographic location
+- firstName/lastName: Name information
+- professionalLinks: Professional online presence
+
+Return ONLY the generated summary text, with no additional formatting or explanation.`,
 
   LINKS: `Generate professional links based on the provided information. Return a JSON object with the following structure:
 {
@@ -144,6 +190,10 @@ const FALLBACK_SUGGESTIONS = {
 
 // Function to make API calls to Groq
 async function callGroq(prompt, input) {
+  if (!groq) {
+    throw new Error('Groq client not initialized. Please check your API key configuration.');
+  }
+
   try {
     const completion = await groq.chat.completions.create({
       messages: [
@@ -159,9 +209,12 @@ async function callGroq(prompt, input) {
           content: `${prompt}\n\nInput: ${input}`
         }
       ],
-      model: 'llama-3.3-70b-versatile',
-      temperature: 0.5, // Lower temperature for more consistent outputs
-      max_tokens: 500,
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      temperature: 1,
+      max_completion_tokens: 1024,
+      top_p: 1,
+      stream: false,
+      stop: null
     });
 
     return completion.choices[0]?.message?.content?.trim() || '';
@@ -724,107 +777,163 @@ export const suggestSummary = async (data) => {
   }
 
   try {
+    // Calculate years of experience safely
+    const yearsOfExperience = (data.experience || []).reduce((total, exp) => {
+      if (!exp.startDate) return total;
+      const start = new Date(exp.startDate);
+      const end = exp.endDate ? new Date(exp.endDate) : new Date();
+      const years = (end - start) / (1000 * 60 * 60 * 24 * 365);
+      return total + (isNaN(years) ? 0 : years);
+    }, 0);
+
+    // Get relevant skills based on career type
+    const relevantSkills = (data.skills || [])
+      .filter(skill => {
+        if (!data.careerType) return true;
+        const skillLower = skill.toLowerCase();
+        const careerTypeLower = data.careerType.toLowerCase();
+        return skillLower.includes(careerTypeLower) || 
+               careerTypeLower.includes(skillLower) ||
+               isRelevantSkill(skillLower, careerTypeLower);
+      })
+      .slice(0, 5);
+
+    // Get education details
+    const highestEducation = data.education?.[0] || {};
+    const hasEducation = Boolean(highestEducation.degree);
+
+    // Get latest experience
+    const latestExperience = data.experience?.[0] || {};
+    const hasExperience = Boolean(latestExperience.position);
+
+    // Get key achievements
+    const keyAchievements = data.experience?.reduce((achievements, exp) => {
+      if (exp.achievements?.length) {
+        achievements.push(...exp.achievements
+          .filter(ach => /\b(\d+%|\d+x|\$\d+|\d+ times|\d+ team|\d+ project|\d+ million|\d+M|\d+K)\b/i.test(ach))
+          .slice(0, 2)
+        );
+      }
+      return achievements;
+    }, []) || [];
+
     const context = {
+      careerType: data.careerType || '',
+      yearsOfExperience: Math.round(yearsOfExperience),
+      hasExperience,
+      hasEducation,
+      currentRole: latestExperience.position || '',
+      currentCompany: latestExperience.company || '',
+      education: {
+        degree: highestEducation.degree || '',
+        field: highestEducation.field || '',
+        school: highestEducation.school || ''
+      },
+      location: data.location || '',
+      skills: relevantSkills,
+      allSkills: data.skills || [],
+      keyAchievements,
       experience: (data.experience || []).map(exp => ({
         position: exp.position || '',
         company: exp.company || '',
-        description: exp.description || '',
-        achievements: exp.achievements || []
+        duration: exp.endDate ? 
+          `${exp.startDate} to ${exp.endDate}` : 
+          `${exp.startDate} to Present`
       })),
-      education: (data.education || []).map(edu => ({
-        degree: edu.degree || '',
-        school: edu.school || '',
-        field: edu.field || '',
-        achievements: edu.achievements || []
-      })),
-      skills: Array.isArray(data.skills) ? data.skills : [],
-      position: data.position || '',
-      industry: data.industry || ''
+      professionalLinks: Object.keys(data.professionalLinks || {}).filter(k => data.professionalLinks[k])
     };
 
     const response = await callGroq(PROMPTS.SUMMARY, JSON.stringify(context));
     
-    // Return the summary text directly
-    return response || FALLBACK_SUGGESTIONS.summary[0].text;
+    if (!response || response.includes('undefined') || response.includes('[object Object]')) {
+      console.warn('Invalid summary generated, using fallback');
+      return generateFallbackSummary(context);
+    }
+
+    return response.trim();
   } catch (error) {
     console.error('Error in suggestSummary:', error);
-    return FALLBACK_SUGGESTIONS.summary[0].text;
+    return generateFallbackSummary(data);
   }
 };
 
-// Helper function to generate a focused summary
-const generateSummaryWithFocus = (context, focus) => {
-  const { experience, education, skills } = context;
-  
-  // Default summary if no data is available
-  if (!experience.length && !education.length && !skills.length) {
-    return "Professional with a strong foundation in the field, dedicated to delivering high-quality results and continuous learning.";
+// Helper function to check skill relevance
+function isRelevantSkill(skill, careerType) {
+  const careerSkillMap = {
+    'software development': ['programming', 'coding', 'development', 'software', 'web', 'app', 'database', 'cloud'],
+    'data science': ['data', 'analytics', 'machine learning', 'statistics', 'python', 'r', 'sql'],
+    'project management': ['management', 'agile', 'scrum', 'leadership', 'coordination', 'planning'],
+    'marketing': ['marketing', 'social media', 'content', 'seo', 'analytics', 'advertising'],
+    'design': ['design', 'ui', 'ux', 'creative', 'visual', 'graphic'],
+    'sales': ['sales', 'negotiation', 'client', 'business development', 'account management'],
+    'finance': ['finance', 'accounting', 'analysis', 'budget', 'financial'],
+    'human resources': ['hr', 'recruitment', 'talent', 'training', 'development', 'employee'],
+    'operations': ['operations', 'process', 'optimization', 'management', 'logistics'],
+    'customer service': ['customer', 'service', 'support', 'client', 'communication']
+  };
+
+  const relevantKeywords = careerSkillMap[careerType.toLowerCase()] || [];
+  return relevantKeywords.some(keyword => skill.includes(keyword));
+}
+
+// Update the fallback summary generation
+function generateFallbackSummary(context) {
+  const {
+    careerType,
+    yearsOfExperience,
+    hasExperience,
+    hasEducation,
+    currentRole,
+    currentCompany,
+    education,
+    location,
+    skills,
+    keyAchievements
+  } = context;
+
+  if (!hasExperience) {
+    // For entry-level or no experience
+    const educationPhrase = hasEducation
+      ? `${education.degree}${education.field ? ` in ${education.field}` : ''} graduate`
+      : 'professional';
+
+    const skillsPhrase = skills?.length
+      ? ` with expertise in ${skills.slice(0, 3).join(', ')}`
+      : '';
+
+    const careerPhrase = careerType
+      ? ` seeking opportunities in ${careerType}`
+      : ' seeking to leverage my skills and knowledge';
+
+    const locationPhrase = location ? ` based in ${location}` : '';
+
+    return `Motivated and detail-oriented ${educationPhrase}${skillsPhrase}${careerPhrase}${locationPhrase}. Bringing fresh perspective, strong analytical abilities, and a passion for delivering high-quality results. Committed to continuous learning and professional growth while making meaningful contributions to organizational success.`;
   }
 
-  let summary = '';
-  
-  switch (focus) {
-    case 'general':
-      summary = generateGeneralSummary(context);
-      break;
-    case 'achievements':
-      summary = generateAchievementSummary(context);
-      break;
-    case 'skills':
-      summary = generateSkillsSummary(context);
-      break;
-    default:
-      summary = generateGeneralSummary(context);
-  }
+  // For experienced professionals
+  const experiencePhrase = yearsOfExperience
+    ? `${Math.round(yearsOfExperience)}+ years of experience`
+    : 'proven experience';
 
-  return summary;
-};
+  const rolePhrase = currentRole 
+    ? `${currentRole}${currentCompany ? ` at ${currentCompany}` : ''}`
+    : careerType || 'Professional';
 
-const generateGeneralSummary = (context) => {
-  const { experience, education } = context;
-  
-  const latestRole = experience[0]?.position || '';
-  const totalExperience = experience.length;
-  const highestEducation = education[0]?.degree || '';
-  
-  return `${latestRole ? `${latestRole} with ` : ''}${totalExperience ? `${totalExperience}+ years of experience` : 'Professional'} ${highestEducation ? `and ${highestEducation}` : ''}. Committed to delivering exceptional results and driving organizational success through innovative solutions and strategic thinking.`;
-};
+  const skillsPhrase = skills?.length
+    ? ` specializing in ${skills.slice(0, 3).join(', ')}`
+    : '';
 
-const generateAchievementSummary = (context) => {
-  const { experience } = context;
-  
-  const achievements = experience
-    .flatMap(exp => exp.achievements || [])
-    .filter(achievement => achievement)
-    .slice(0, 2);
-  
-  return `Results-driven professional with a track record of success${achievements.length ? `, including ${achievements.join(' and ')}` : ''}. Demonstrated ability to drive growth and deliver impactful solutions.`;
-};
+  const educationPhrase = hasEducation
+    ? ` with ${education.degree}${education.field ? ` in ${education.field}` : ''}`
+    : '';
 
-const generateSkillsSummary = (context) => {
-  const { skills } = context;
-  
-  const topSkills = (skills || []).slice(0, 3).join(', ');
-  
-  return `Skilled professional${topSkills ? ` with expertise in ${topSkills}` : ''}, bringing a comprehensive understanding of industry best practices and a commitment to excellence.`;
-};
+  const achievementPhrase = keyAchievements?.length
+    ? ` Key achievements include ${keyAchievements[0]}${keyAchievements[1] ? ` and ${keyAchievements[1]}` : ''}.`
+    : '';
 
-// Helper function for fallback summaries
-function getFallbackSummaries() {
-  return [
-    {
-      text: "Experienced professional with a proven track record of success in delivering results. Strong analytical and problem-solving skills combined with excellent communication abilities.",
-      focus: "General"
-    },
-    {
-      text: "Results-driven professional who has consistently exceeded targets and implemented innovative solutions. Track record of leading successful projects and driving organizational growth.",
-      focus: "Achievements"
-    },
-    {
-      text: "Skilled professional with expertise in project management, team leadership, and strategic planning. Proven ability to optimize processes and deliver high-quality results.",
-      focus: "Skills"
-    }
-  ];
+  const locationPhrase = location ? ` Based in ${location}.` : '';
+
+  return `Experienced ${rolePhrase} with ${experiencePhrase}${skillsPhrase}${educationPhrase}. Demonstrated track record of delivering impactful solutions and driving organizational success${achievementPhrase}${locationPhrase} Committed to excellence, innovation, and continuous improvement in all professional endeavors.`;
 }
 
 // Links suggestion function

@@ -1,74 +1,108 @@
 # AI Resume Builder
 
-An intelligent resume generation system that creates customized, ATS-friendly resumes based on user inputs. The application uses AI to provide content suggestions, analyze ATS compatibility, and optimize resumes for specific job descriptions.
+A modern, AI-powered resume builder that helps create professional, ATS-friendly resumes with intelligent content suggestions and multiple export formats.
 
-## Features
+## 🌟 Features
 
-- 🤖 AI-powered content generation and suggestions
-- 📊 ATS compatibility analysis
-- 🎯 Job description matching
-- 🔍 Industry-specific keyword optimization
-- 📝 Multiple export formats (PDF, DOCX, HTML)
-- 🎨 4 customizable templates
-- 💾 Local storage for data privacy
-- 📱 Responsive design for all devices
+- **AI-Powered Content Generation**: Smart suggestions for professional summaries, achievements, and skills
+- **Multiple Templates**: Choose from Modern, Minimal, Professional, and Classic designs
+- **ATS Optimization**: Built-in ATS compatibility checker and keyword optimization
+- **Export Options**: Download in PDF, DOCX, or HTML formats
+- **Real-time Preview**: See changes as you type
+- **Job Matching**: Compare your resume against job descriptions
+- **Local Storage**: Auto-save and version history
+- **Responsive Design**: Works on all devices
 
-## Live Demo
-
-[View Live Demo](https://airesumebuilder.netlify.app/)
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 16.x or higher
-- npm or yarn
-- A Groq API key for AI features
-
-### Installation
+## 🚀 Quick Start
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/mooncakesg/ai-resume-builder.git
+git clone https://github.com/yourusername/ai-resume-builder.git
 cd ai-resume-builder
 ```
 
 2. Install dependencies:
 ```bash
 npm install
-# or
-yarn install
 ```
 
-3. Create a `.env` file in the project root:
-```env
-VITE_GROQ_API_KEY=your-api-key-here
+3. Set up environment variables:
+```bash
+cp .env.example .env
+# Add your API keys to .env
 ```
 
 4. Start the development server:
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
 5. Open http://localhost:5173 in your browser
 
-### Building for Production
+## 📚 Documentation
 
-```bash
-npm run build
-# or
-yarn build
-```
+- [Setup Guide](docs/setup-guide.md) - Detailed installation and configuration instructions
+- [User Guide](docs/user-guide.md) - Complete guide to using the application
+- [Technical Report](docs/technical-report.md) - Architecture and implementation details
+- [Screenshot Walkthrough](docs/screenshot-walkthrough.md) - Visual guide to features
+- [Sample Outputs](docs/sample-outputs.md) - Example resumes and AI-generated content
 
-The build output will be in the `dist` directory.
+## 🛠️ Technology Stack
 
-## Documentation
+- **Frontend**: React + Vite
+- **Styling**: Tailwind CSS
+- **AI Integration**: Groq API
+- **State Management**: Context API
+- **Export**: jsPDF, docx-js
+- **Storage**: Local Storage
 
-- [User Guide](docs/user-guide.md)
-- [Technical Report](docs/technical-report.md)
-- [API Documentation](docs/api-docs.md)
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Groq](https://groq.com) for AI capabilities
+- [React](https://reactjs.org) and [Vite](https://vitejs.dev) communities
+- All contributors and users
+
+## 🆘 Support
+
+- Check our [Documentation](docs/)
+- Open an [Issue](https://github.com/yourusername/ai-resume-builder/issues)
+- Join our [Discord Community](https://discord.gg/yourdiscord)
+- Email: support@airesume.example.com
+
+## 🌐 Links
+
+- [Website](https://airesume.example.com)
+- [Documentation](https://docs.airesume.example.com)
+- [GitHub Repository](https://github.com/yourusername/ai-resume-builder)
+
+## 📊 Project Status
+
+- ✅ Core Features
+- ✅ AI Integration
+- ✅ Multiple Templates
+- ✅ Export Options
+- ✅ Documentation
+- 🚧 Enhanced Job Matching (In Progress)
+- 🚧 Mobile App (Planned)
+- 🚧 API Access (Planned)
+
+## Live Demo
+
+[View Live Demo](https://airesumebuilder.netlify.app/)
 
 ## Project Structure
 

@@ -32,7 +32,7 @@ const Personal = ({ data, onChange }) => {
     careerType: '',
     yearsOfExperience: '',
     summary: '',
-    links: {}
+    professionalLinks: {}
   })
   const [errors, setErrors] = useState({})
 
@@ -87,22 +87,24 @@ const Personal = ({ data, onChange }) => {
   const handleLinkChange = useCallback((platform, url) => {
     setPersonalDetails(prev => ({
       ...prev,
-      links: {
-        ...prev.links,
+      professionalLinks: {
+        ...prev.professionalLinks,
         [platform]: url
       }
     }))
   }, [])
 
   const handleSummaryUpdate = (suggestion) => {
-    handleChange('summary', suggestion)
+    if (suggestion && typeof suggestion === 'string') {
+      handleChange('summary', suggestion.trim())
+    }
   }
 
   const handleLinksUpdate = (suggestion) => {
     setPersonalDetails(prev => ({
       ...prev,
-      links: {
-        ...prev.links,
+      professionalLinks: {
+        ...prev.professionalLinks,
         ...suggestion
       }
     }))
@@ -245,17 +247,21 @@ const Personal = ({ data, onChange }) => {
           <AISuggest
             type="summary"
             onSuggestionSelect={handleSummaryUpdate}
-            context={personalDetails}
+            context={{
+              ...personalDetails,
+              experience: data?.experience || [],
+              education: data?.education || [],
+              skills: data?.skills || []
+            }}
           />
         </div>
         <textarea
           id="summary"
           name="summary"
-          rows={4}
           value={personalDetails.summary || ''}
           onChange={(e) => handleChange('summary', e.target.value)}
-          className="w-full p-3 border border-gray-200 rounded-lg"
-          placeholder="Write a brief summary of your professional background and career goals..."
+          className="w-full p-3 border border-gray-200 rounded-lg min-h-[120px]"
+          placeholder="Write a brief professional summary highlighting your key qualifications and career objectives..."
         />
       </div>
 
@@ -264,55 +270,60 @@ const Personal = ({ data, onChange }) => {
           <label className="block text-sm font-medium text-gray-700">
             Professional Links
           </label>
+          <AISuggest
+            type="links"
+            onSuggestionSelect={handleLinksUpdate}
+            context={personalDetails}
+          />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div className="space-y-4">
           <div className="space-y-2">
             <label 
-              htmlFor="linkedinUrl"
+              htmlFor="linkedin"
               className="block text-sm font-medium text-gray-700"
             >
               LinkedIn
             </label>
             <input
-              id="linkedinUrl"
-              name="linkedinUrl"
+              id="linkedin"
               type="url"
-              value={personalDetails.links?.linkedin || ''}
+              value={personalDetails.professionalLinks?.linkedin || ''}
               onChange={(e) => handleLinkChange('linkedin', e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-lg"
               placeholder="https://linkedin.com/in/..."
             />
           </div>
+
           <div className="space-y-2">
             <label 
-              htmlFor="githubUrl"
+              htmlFor="github"
               className="block text-sm font-medium text-gray-700"
             >
               GitHub
             </label>
             <input
-              id="githubUrl"
-              name="githubUrl"
+              id="github"
               type="url"
-              value={personalDetails.links?.github || ''}
+              value={personalDetails.professionalLinks?.github || ''}
               onChange={(e) => handleLinkChange('github', e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-lg"
               placeholder="https://github.com/..."
             />
           </div>
+
           <div className="space-y-2">
             <label 
-              htmlFor="portfolioUrl"
+              htmlFor="portfolio"
               className="block text-sm font-medium text-gray-700"
             >
               Portfolio Website
             </label>
             <input
-              id="portfolioUrl"
-              name="portfolioUrl"
+              id="portfolio"
               type="url"
-              value={personalDetails.links?.website || ''}
-              onChange={(e) => handleLinkChange('website', e.target.value)}
+              value={personalDetails.professionalLinks?.portfolio || ''}
+              onChange={(e) => handleLinkChange('portfolio', e.target.value)}
               className="w-full p-3 border border-gray-200 rounded-lg"
               placeholder="https://..."
             />

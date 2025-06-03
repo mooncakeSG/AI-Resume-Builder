@@ -1,110 +1,113 @@
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { AlertCircle, Target, Lightbulb, ArrowRight } from 'lucide-react';
+import { analyzeJobMatch } from '../lib/ai/contentGenerator';
 
-const JobMatcher = ({ resumeData }) => {
+export default function JobMatcher({ resumeData }) {
   const [jobDescription, setJobDescription] = useState('');
-  const [matchScore, setMatchScore] = useState(null);
-  const [keywordMatches, setKeywordMatches] = useState([]);
-  const [missingKeywords, setMissingKeywords] = useState([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState(null);
+  const [error, setError] = useState(null);
 
-  const analyzeMatch = () => {
-    // Common job-related keywords by category
-    const keywordCategories = {
-      skills: ['javascript', 'react', 'node', 'python', 'java', 'sql', 'aws', 'docker'],
-      softSkills: ['leadership', 'communication', 'teamwork', 'problem-solving', 'analytical'],
-      tools: ['git', 'jira', 'jenkins', 'kubernetes', 'azure', 'agile'],
-      concepts: ['ci/cd', 'testing', 'architecture', 'design patterns', 'algorithms']
-    };
+  const analyzeMatch = async () => {
+    if (!jobDescription.trim()) {
+      setError('Please enter a job description to analyze.');
+      return;
+    }
 
-    // Extract keywords from job description
-    const jobKeywords = Object.values(keywordCategories)
-      .flat()
-      .filter(keyword => 
-        jobDescription.toLowerCase().includes(keyword.toLowerCase())
-      );
+    setIsAnalyzing(true);
+    setError(null);
 
-    // Check resume content for matches
-    const matches = [];
-    const missing = [];
-    
-    jobKeywords.forEach(keyword => {
-      const isInResume = 
-        resumeData.skills?.some(skill => 
-          skill.toLowerCase().includes(keyword.toLowerCase())) ||
-        resumeData.experience?.some(exp => 
-          exp.description?.toLowerCase().includes(keyword.toLowerCase())) ||
-        resumeData.personal?.summary?.toLowerCase().includes(keyword.toLowerCase());
+    try {
+      // Convert resume data to string for analysis
+      const resumeText = Object.entries(resumeData)
+        .map(([section, data]) => {
+          if (Array.isArray(data)) {
+            return data.map(item => Object.values(item).join(' ')).join('\n');
+          }
+          return Object.values(data).join(' ');
+        })
+        .join('\n');
 
-      if (isInResume) {
-        matches.push(keyword);
-      } else {
-        missing.push(keyword);
-      }
-    });
-
-    // Calculate match score
-    const score = jobKeywords.length > 0 
-      ? Math.round((matches.length / jobKeywords.length) * 100)
-      : 0;
-
-    setMatchScore(score);
-    setKeywordMatches(matches);
-    setMissingKeywords(missing);
+      // Analyze job match
+      const result = await analyzeJobMatch(resumeText, jobDescription);
+      setAnalysis(result);
+    } catch (err) {
+      setError('Failed to analyze job match. Please try again.');
+      console.error('Analysis error:', err);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h2 className="text-xl font-semibold mb-4">Job Description Matcher</h2>
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Paste Job Description
-        </label>
-        <textarea
+    <div className="space-y-4">
+      <CardHeader className="px-0 pt-0">
+        <CardTitle className="text-lg font-semibold">Job Match Analysis</CardTitle>
+      </CardHeader>
+
+      <div className="space-y-4">
+        <Textarea
+          placeholder="Paste the job description here to analyze how well your resume matches..."
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          className="w-full h-32 px-3 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Paste the job description here..."
+          className="min-h-[100px]"
         />
+
+        <Button 
+          onClick={analyzeMatch}
+          disabled={isAnalyzing || !jobDescription.trim()}
+          className="w-full sm:w-auto"
+        >
+          {isAnalyzing ? 'Analyzing...' : 'Analyze Match'}
+        </Button>
+
+        {error && (
+          <div className="flex items-center gap-2 text-destructive">
+            <AlertCircle className="h-4 w-4" />
+            <p>{error}</p>
+          </div>
+        )}
+
+        {analysis && (
+          <div className="space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Target className="h-4 w-4" />
+                      <span className="font-medium">Match Score</span>
+                    </div>
+                    <span className="text-sm">{analysis.score}%</span>
+                  </div>
+                  <Progress value={analysis.score} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" />
+                <h3 className="font-medium">Improvement Suggestions</h3>
+              </div>
+              <ul className="space-y-2">
+                {analysis.suggestions.split('\n').map((suggestion, index) => (
+                  suggestion.trim() && (
+                    <li key={index} className="flex items-start gap-2">
+                      <ArrowRight className="h-4 w-4 mt-1" />
+                      <span>{suggestion}</span>
+                    </li>
+                  )
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
-
-      <button
-        onClick={analyzeMatch}
-        disabled={!jobDescription}
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Analyze Match
-      </button>
-
-      {matchScore !== null && (
-        <div className="mt-6">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="text-2xl font-bold">{matchScore}%</div>
-            <div className="text-gray-600">Match Score</div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold mb-2 text-green-600">Matching Keywords:</h3>
-              <ul className="list-disc list-inside text-gray-600">
-                {keywordMatches.map((keyword, index) => (
-                  <li key={index}>{keyword}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="font-semibold mb-2 text-red-600">Missing Keywords:</h3>
-              <ul className="list-disc list-inside text-gray-600">
-                {missingKeywords.map((keyword, index) => (
-                  <li key={index}>{keyword}</li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
-
-export default JobMatcher; 
+} 

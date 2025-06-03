@@ -1,7 +1,7 @@
 import React from 'react';
 
 const MinimalTemplate = ({ data }) => {
-  const { personal, experience, education, skills } = data;
+  const { personal, experience, education, skills, professionalLinks } = data || {};
   const fullName = personal ? `${personal.firstName} ${personal.lastName}` : '';
 
   return (
@@ -13,6 +13,55 @@ const MinimalTemplate = ({ data }) => {
           {personal?.phone && <span>• {personal.phone}</span>}
           {personal?.location && <span>• {personal.location}</span>}
         </div>
+        {professionalLinks && (
+          <div className="mt-2 text-sm text-gray-600 space-x-3">
+            {professionalLinks.linkedin && (
+              <a href={professionalLinks.linkedin} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">
+                LinkedIn
+              </a>
+            )}
+            {professionalLinks.github && (
+              <>
+                <span>•</span>
+                <a href={professionalLinks.github} target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">
+                  GitHub
+                </a>
+              </>
+            )}
+            {professionalLinks.portfolio && (
+              <>
+                <span>•</span>
+                <a href={professionalLinks.portfolio} target="_blank" rel="noopener noreferrer" className="hover:text-purple-600 transition-colors">
+                  Portfolio
+                </a>
+              </>
+            )}
+            {professionalLinks.website && (
+              <>
+                <span>•</span>
+                <a href={professionalLinks.website} target="_blank" rel="noopener noreferrer" className="hover:text-green-600 transition-colors">
+                  Website
+                </a>
+              </>
+            )}
+            {professionalLinks.twitter && (
+              <>
+                <span>•</span>
+                <a href={professionalLinks.twitter} target="_blank" rel="noopener noreferrer" className="hover:text-blue-400 transition-colors">
+                  Twitter
+                </a>
+              </>
+            )}
+            {professionalLinks.other && (
+              <>
+                <span>•</span>
+                <a href={professionalLinks.other} target="_blank" rel="noopener noreferrer" className="hover:text-gray-800 transition-colors">
+                  Other
+                </a>
+              </>
+            )}
+          </div>
+        )}
       </header>
 
       {personal?.summary && (

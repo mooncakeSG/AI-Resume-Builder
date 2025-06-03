@@ -70,8 +70,11 @@ const AISuggest = ({ type, data, context, onSuggestionSelect }) => {
             experience: suggestionData.experience || [],
             education: suggestionData.education || [],
             skills: suggestionData.skills || [],
-            position: suggestionData.position || '',
-            technologies: suggestionData.technologies || []
+            careerType: suggestionData.careerType || '',
+            firstName: suggestionData.firstName || '',
+            lastName: suggestionData.lastName || '',
+            location: suggestionData.location || '',
+            professionalLinks: suggestionData.professionalLinks || {}
           });
           // For summary, pass the string directly
           onSuggestionSelect(result);

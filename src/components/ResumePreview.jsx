@@ -32,7 +32,7 @@ const ResumePreview = ({ formData }) => {
         </div>
         <div className="bg-white shadow-lg rounded-lg overflow-hidden">
           <TemplateComponent
-            formData={formData}
+            data={formData}
             settings={templateSettings}
           />
         </div>
