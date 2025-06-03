@@ -1,14 +1,18 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { ToastProvider } from '@/components/ui/toast';
+
+// Mock toast provider
+const MockToastProvider = ({ children }) => {
+  return <div data-testid="toast-provider">{children}</div>;
+};
 
 const AllTheProviders = ({ children }) => {
   return (
     <BrowserRouter>
-      <ToastProvider>
+      <MockToastProvider>
         {children}
-      </ToastProvider>
+      </MockToastProvider>
     </BrowserRouter>
   );
 };

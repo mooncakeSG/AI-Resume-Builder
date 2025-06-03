@@ -72,7 +72,7 @@ export default function JobMatcher({ resumeData }) {
           </div>
         )}
 
-        {analysis && (
+        {analysis && analysis.score !== undefined && (
           <div className="space-y-4">
             <Card>
               <CardContent className="pt-6">
@@ -89,22 +89,22 @@ export default function JobMatcher({ resumeData }) {
               </CardContent>
             </Card>
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4" />
-                <h3 className="font-medium">Improvement Suggestions</h3>
-              </div>
-              <ul className="space-y-2">
-                {analysis.suggestions.split('\n').map((suggestion, index) => (
-                  suggestion.trim() && (
+            {analysis.suggestions && analysis.suggestions.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4" />
+                  <h3 className="font-medium">Improvement Suggestions</h3>
+                </div>
+                <ul className="space-y-2">
+                  {analysis.suggestions.map((item, index) => (
                     <li key={index} className="flex items-start gap-2">
                       <ArrowRight className="h-4 w-4 mt-1" />
-                      <span>{suggestion}</span>
+                      <span>{item.suggestion}</span>
                     </li>
-                  )
-                ))}
-              </ul>
-            </div>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </div>

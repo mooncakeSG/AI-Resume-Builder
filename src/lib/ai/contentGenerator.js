@@ -11,29 +11,33 @@ const getGroqApiKey = () => {
 
 let groq = null;
 
-try {
-  const apiKey = getGroqApiKey();
-  if (apiKey) {
-    groq = new Groq({
-      apiKey,
-      dangerouslyAllowBrowser: true
-    });
+const initializeGroq = () => {
+  try {
+    const apiKey = getGroqApiKey();
+    if (apiKey) {
+      groq = new Groq({
+        apiKey,
+        dangerouslyAllowBrowser: true
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing Groq client:', error);
   }
-} catch (error) {
-  console.error('Error initializing Groq client:', error);
-}
+};
+
+initializeGroq();
 
 const handleGroqError = (error) => {
   console.error('Groq API error:', error);
   if (!groq) {
-    return 'API client not initialized. Please check your API key configuration.';
+    throw new Error('API client not initialized. Please check your API key configuration.');
   }
-  return 'An error occurred while generating content. Please try again.';
+  throw new Error('An error occurred while generating content. Please try again.');
 };
 
 export async function generateContent(jobRole, industry, userInput) {
   if (!groq) {
-    throw new Error('Groq client not initialized. Please check your API key configuration.');
+    throw new Error('API client not initialized. Please check your API key configuration.');
   }
 
   try {
@@ -58,13 +62,13 @@ export async function generateContent(jobRole, industry, userInput) {
 
     return completion.choices[0].message.content;
   } catch (error) {
-    return handleGroqError(error);
+    throw handleGroqError(error);
   }
 }
 
 export async function optimizeKeywords(content, jobDescription) {
   if (!groq) {
-    throw new Error('Groq client not initialized. Please check your API key configuration.');
+    throw new Error('API client not initialized. Please check your API key configuration.');
   }
 
   try {
@@ -102,13 +106,13 @@ Return the analysis as a structured list with clear section headers and bullet p
 
     return completion.choices[0].message.content;
   } catch (error) {
-    return handleGroqError(error);
+    throw handleGroqError(error);
   }
 }
 
 export async function analyzeJobMatch(resume, jobDescription) {
   if (!groq) {
-    throw new Error('Groq client not initialized. Please check your API key configuration.');
+    throw new Error('API client not initialized. Please check your API key configuration.');
   }
 
   try {
@@ -157,9 +161,6 @@ Return the response as a JSON string with score and analysis fields.`
       };
     }
   } catch (error) {
-    return {
-      score: 0,
-      analysis: handleGroqError(error)
-    };
+    throw handleGroqError(error);
   }
 } 
