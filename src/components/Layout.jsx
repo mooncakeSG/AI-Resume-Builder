@@ -11,7 +11,6 @@ import Preview from './Preview';
 import TemplateSwitcher from './TemplateSwitcher';
 import ProfileManager from './ProfileManager';
 import AISuggestions from './AISuggestions';
-import ATSChecker from './ATSChecker';
 import JobMatcher from './JobMatcher';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { Card, CardContent } from './ui/card';
@@ -118,12 +117,6 @@ const Layout = ({ children }) => {
                 <Card>
                   <CardContent className="p-3 sm:p-4">
                     <AISuggestions />
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-3 sm:p-4">
-                    <ATSChecker resumeData={currentProfile.data} />
                   </CardContent>
                 </Card>
                 
