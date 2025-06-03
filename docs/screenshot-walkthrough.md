@@ -29,14 +29,14 @@
 - Smart suggestions for content improvement
 
 ### Experience Section
-![Experience Section](screenshots/experience.png)
+![Experience Section](screenshots/education.png)
 - Work history management
 - AI content suggestions
 - Industry-specific recommendations
 - ATS compatibility checking
 
 ### Education Section
-![Education Section](screenshots/education.png)
+![Education Section](screenshots/experience.png)
 - Educational background input
 - AI-powered content enhancement
 - Industry-tailored suggestions
