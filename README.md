@@ -84,10 +84,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Email: support@airesume.example.com
 
 ## 🌐 Links
-
-- [Website](https://airesume.example.com)
-- [Documentation](https://docs.airesume.example.com)
-- [GitHub Repository](https://github.com/yourusername/ai-resume-builder)
+- [Documentation]docs
+- [GitHub Repository](https://github.com/mooncakeSG/AI-Resume-Builder)
 
 ## 📊 Project Status
 
