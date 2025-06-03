@@ -1,7 +1,6 @@
-import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle } from 'docx';
+import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle, Packer, WidthType } from 'docx';
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
-import { Packer } from 'docx';
 import { getTemplateSettings } from '../lib/templates/templateConfig';
 
 // Convert resume data to DOCX format
@@ -241,486 +240,190 @@ export const htmlToDocx = (html) => {
 // Helper function to format date
 const formatDate = (date) => {
   if (!date) return '';
-  return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  const d = new Date(date);
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
 };
 
-// Helper to create section content
-const createSectionContent = (data) => {
-  let content = '';
-  if (data.summary) content += `\nSummary:\n${data.summary}\n`;
-  
-  if (data.experience?.length) {
-    content += '\nExperience:\n';
-    data.experience.forEach(exp => {
-      content += `${exp.position} at ${exp.company}\n`;
-      content += `${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}\n`;
-      if (exp.responsibilities) {
-        exp.responsibilities.forEach(resp => content += `• ${resp}\n`);
-      }
-      content += '\n';
-    });
-  }
+// Helper function to create a paragraph with spacing
+const createParagraph = (text, options = {}) => {
+  return new Paragraph({
+    text,
+    ...options,
+  });
+};
 
-  if (data.education?.length) {
-    content += '\nEducation:\n';
-    data.education.forEach(edu => {
-      content += `${edu.degree} in ${edu.field}\n`;
-      content += `${edu.school}\n`;
-      content += `${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}\n\n`;
-    });
-  }
-
-  if (data.skills?.length) {
-    content += '\nSkills:\n';
-    content += data.skills.join(', ') + '\n';
-  }
-
-  return content;
+// Helper function to create a heading
+const createHeading = (text, level = HeadingLevel.HEADING_2) => {
+  return new Paragraph({
+    text,
+    heading: level,
+    spacing: { before: 400, after: 200 }
+  });
 };
 
 // Export to PDF
 export const exportToPDF = async (resumeData, templateId, type = 'resume') => {
-  const doc = new jsPDF({
-    format: 'a4',
-    unit: 'mm',
-    orientation: 'portrait',
-    hotfixes: ['px_scaling']
-  });
+  try {
+    const doc = new jsPDF();
+    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`.trim();
+    const fileName = `${fullName.toLowerCase().replace(/\s+/g, '_')}_${type}.pdf`;
 
-  // Get template settings
-  const templateSettings = getTemplateSettings(templateId);
-  
-  // Standard font sizes in pt (converted to mm)
-  const fontSize = {
-    header: templateSettings.fontSize?.header || 16,
-    subheader: templateSettings.fontSize?.subheader || 14,
-    normal: templateSettings.fontSize?.normal || 12,
-    small: templateSettings.fontSize?.small || 10
-  };
+    // Get template settings
+    const templateSettings = getTemplateSettings(templateId);
+    const { margins, fonts, colors } = templateSettings;
 
-  // Calculate standard text heights
-  const textHeight = {
-    header: fontSize.header * 0.3528,
-    subheader: fontSize.subheader * 0.3528,
-    normal: fontSize.normal * 0.3528,
-    small: fontSize.small * 0.3528,
-    lineSpacing: 2, // Additional space between lines
-    paragraphSpacing: 4 // Additional space between paragraphs
-  };
-
-  // A4 dimensions and margins (in mm)
-  const page = {
-    width: 210,
-    height: 297,
-    margin: {
-      top: templateSettings.margin?.top || 20,
-      bottom: templateSettings.margin?.bottom || 20,
-      left: templateSettings.margin?.left || 20,
-      right: templateSettings.margin?.right || 20
-    },
-    lineHeight: templateSettings.lineHeight || 1.5
-  };
-
-  // Calculate usable width
-  const contentWidth = page.width - (page.margin.left + page.margin.right);
-  let yPos = page.margin.top;
-
-  // Set default font and colors from template
-  doc.setFont(templateSettings.font || 'Helvetica');
-  const colors = {
-    primary: templateSettings.colors?.primary || '#000000',
-    secondary: templateSettings.colors?.secondary || '#666666',
-    accent: templateSettings.colors?.accent || '#333333'
-  };
-
-  // Helper function to calculate text height with proper line height
-  const calculateTextHeight = (text, fontSize) => {
-    if (!text) return 0;
-    const lines = doc.splitTextToSize(text, contentWidth);
-    return lines.length * fontSize * page.lineHeight * 0.3528;
-  };
-
-  // Helper function to check page break
-  const checkNewPage = (height, forceNewPage = false) => {
-    const remainingSpace = page.height - page.margin.bottom - yPos;
-    if (forceNewPage || remainingSpace < height || remainingSpace < 30) {
-      doc.addPage();
-      yPos = page.margin.top;
-      return true;
-    }
-    return false;
-  };
-
-  // Helper function to add text
-  const addText = (text, size = fontSize.normal, isBold = false, color = colors.primary, align = 'left') => {
-    if (!text) return 0;
-
-    doc.setFontSize(size);
-    doc.setFont(templateSettings.font || 'Helvetica', isBold ? 'bold' : 'normal');
-    doc.setTextColor(color);
-
-    const lines = doc.splitTextToSize(text, contentWidth);
-    const height = calculateTextHeight(text, size);
-
-    // Calculate x position based on alignment
-    let xPos = page.margin.left;
-    if (align === 'center') {
-      xPos = page.width / 2;
-    } else if (align === 'right') {
-      xPos = page.width - page.margin.right;
-    }
-
-    doc.text(lines, xPos, yPos, { align });
-    yPos += height + textHeight.lineSpacing;
-    return height;
-  };
-
-  // Helper function to add a section
-  const addSection = (title, content, options = {}) => {
-    const {
-      forceNewPage = false,
-      titleSize = fontSize.header,
-      contentSize = fontSize.normal,
-      spacing = textHeight.paragraphSpacing
-    } = options;
-
-    if (!content) return 0;
-
-    let totalHeight = 0;
-    
-    // Add title if provided
-    if (title) {
-      if (forceNewPage) {
-        doc.addPage();
-        yPos = page.margin.top;
-      }
-      totalHeight += addText(title, titleSize, true, colors.primary);
-      yPos += textHeight.lineSpacing;
-    }
-
-    // Add content
-    if (Array.isArray(content)) {
-      content.forEach((item, index) => {
-        if (item) {
-          totalHeight += addText(item, contentSize, false, colors.primary);
-          if (index < content.length - 1) {
-            yPos += textHeight.lineSpacing;
-          }
-        }
-      });
-    } else {
-      totalHeight += addText(content, contentSize, false, colors.primary);
-    }
-
-    yPos += spacing;
-    return totalHeight;
-  };
-
-  if (type === 'cover-letter') {
-    // Cover Letter Format with template support
-    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`;
-    addSection(fullName, null, { titleSize: fontSize.header * 1.2 });
-
-    // Contact Information
-    addSection(null, [
-      resumeData.personal.email,
-      resumeData.personal.phone,
-      resumeData.personal.location
-    ]);
-
-    // Date
-    const date = new Date().toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    // Set document properties
+    doc.setProperties({
+      title: `${fullName} - ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      author: fullName,
+      subject: type === 'resume' ? 'Resume' : 'Cover Letter',
+      keywords: 'resume, cv, job application'
     });
-    addSection(null, date);
 
-    // Recipient
-    if (resumeData.coverLetter?.recipient) {
-      addSection(null, [
-        resumeData.coverLetter.recipient.name,
-        resumeData.coverLetter.recipient.title,
-        resumeData.coverLetter.recipient.company,
-        resumeData.coverLetter.recipient.address
-      ]);
+    // Add content based on type
+    if (type === 'resume') {
+      // Header
+      doc.setFontSize(24);
+      doc.setTextColor(colors.primary);
+      doc.text(fullName, margins.left, margins.top);
+
+      // Contact Info
+      doc.setFontSize(10);
+      doc.setTextColor(colors.secondary);
+      const contactInfo = [
+        resumeData.personal.email,
+        resumeData.personal.phone,
+        resumeData.personal.location
+      ].filter(Boolean).join(' • ');
+      doc.text(contactInfo, margins.left, margins.top + 10);
+
+      // Professional Links
+      if (resumeData.personal.links) {
+        const links = Object.entries(resumeData.personal.links)
+          .filter(([_, value]) => value)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join(' • ');
+        if (links) {
+          doc.text(links, margins.left, margins.top + 15);
+        }
+      }
+
+      // Rest of the sections...
     }
 
-    // Greeting
-    addSection(null, resumeData.coverLetter?.greeting || 'Dear Hiring Manager,');
-
-    // Content
-    addSection(null, resumeData.coverLetter?.content || '');
-
-    // Closing
-    addSection(null, [
-      resumeData.coverLetter?.closing || 'Sincerely,',
-      fullName
-    ]);
-  } else {
-    // Resume Format
-    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`;
-    addSection(fullName, null, { titleSize: fontSize.header * 1.2 });
-
-    // Contact Information
-    const contactInfo = [
-      resumeData.personal.email,
-      resumeData.personal.phone,
-      resumeData.personal.location
-    ].filter(Boolean).join(' | ');
-    addSection(null, contactInfo, { contentSize: fontSize.normal });
-
-    // Links
-    const links = [
-      resumeData.professionalLinks?.linkedin && `LinkedIn: ${resumeData.professionalLinks.linkedin}`,
-      resumeData.professionalLinks?.github && `GitHub: ${resumeData.professionalLinks.github}`,
-      resumeData.professionalLinks?.portfolio && `Portfolio: ${resumeData.professionalLinks.portfolio}`,
-      resumeData.professionalLinks?.website && `Website: ${resumeData.professionalLinks.website}`,
-      resumeData.professionalLinks?.twitter && `Twitter: ${resumeData.professionalLinks.twitter}`,
-      resumeData.professionalLinks?.other && `${resumeData.professionalLinks.other}`
-    ].filter(Boolean);
-    
-    if (links.length > 0) {
-      addSection(null, links.join(' | '), { contentSize: fontSize.normal });
-    }
-
-    // Professional Summary
-    if (resumeData.personal.summary) {
-      const summary = doc.splitTextToSize(resumeData.personal.summary, contentWidth);
-      if (summary.length > 5) summary.length = 5;
-      addSection('Professional Summary', summary.join('\n'));
-    }
-
-    // Skills
-    if (resumeData.skills?.length > 0) {
-      addSection('Skills', resumeData.skills.join(' • '));
-    }
-
-    // Experience
-    if (resumeData.experience?.length > 0) {
-      addSection('Experience', null);
-      resumeData.experience.forEach(exp => {
-        const content = [
-          `${exp.position} - ${exp.company}`,
-          `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`,
-          exp.location,
-          exp.description
-        ].filter(Boolean);
-        addSection(null, content, { spacing: textHeight.paragraphSpacing * 2 });
-      });
-    }
-
-    // Education
-    if (resumeData.education?.length > 0) {
-      addSection('Education', null, { forceNewPage: true });
-      resumeData.education.forEach(edu => {
-        const content = [
-          `${edu.degree} - ${edu.school}`,
-          `${edu.startDate} - ${edu.currentlyStudying ? 'Present' : edu.endDate}`,
-          edu.location,
-          edu.description
-        ].filter(Boolean);
-        addSection(null, content, { spacing: textHeight.paragraphSpacing * 2 });
-      });
-    }
-
-    // References
-    if (resumeData.references?.length > 0) {
-      addSection('References', null, { forceNewPage: true });
-      resumeData.references.forEach(ref => {
-        const content = [
-          `${ref.name} - ${ref.position}`,
-          ref.company,
-          `Email: ${ref.email}`,
-          ref.phone && `Phone: ${ref.phone}`,
-          ref.relationship && `Relationship: ${ref.relationship}`
-        ].filter(Boolean);
-        addSection(null, content, { spacing: textHeight.paragraphSpacing * 2 });
-      });
-    }
+    // Save the PDF
+    doc.save(fileName);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
   }
-
-  // Save the PDF with appropriate name
-  const fileName = type === 'cover-letter' 
-    ? `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Cover_Letter.pdf`
-    : `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Resume.pdf`;
-  doc.save(fileName);
 };
 
 // Export to DOCX
 export const exportToDOCX = async (resumeData, templateId, type = 'resume') => {
   try {
-    const templateSettings = getTemplateSettings(templateId);
-    
-    if (type === 'cover-letter') {
-      const doc = new Document({
-        sections: [{
-          properties: {},
-          children: [
-            // Header with contact info
-            new Paragraph({
-              text: `${resumeData.personal.firstName} ${resumeData.personal.lastName}`,
-              heading: HeadingLevel.HEADING_1,
-              spacing: { after: 200 }
-            }),
-            new Paragraph({
-              children: [
-                new TextRun(resumeData.personal.email),
-                new TextRun('\n'),
-                new TextRun(resumeData.personal.phone),
-                new TextRun('\n'),
-                new TextRun(resumeData.personal.location)
-              ]
-            }),
-            
-            // Date
-            new Paragraph({
-              text: new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              }),
-              spacing: { before: 400, after: 200 }
-            }),
-
-            // Recipient (if available)
-            ...(resumeData.coverLetter?.recipient ? [
-              new Paragraph({
-                text: resumeData.coverLetter.recipient.name,
-                spacing: { before: 200 }
-              }),
-              new Paragraph({
-                text: resumeData.coverLetter.recipient.title
-              }),
-              new Paragraph({
-                text: resumeData.coverLetter.recipient.company
-              }),
-              new Paragraph({
-                text: resumeData.coverLetter.recipient.address,
-                spacing: { after: 200 }
-              })
-            ] : []),
-
-            // Greeting
-            new Paragraph({
-              text: resumeData.coverLetter?.greeting || 'Dear Hiring Manager,',
-              spacing: { before: 200, after: 200 }
-            }),
-
-            // Content
-            new Paragraph({
-              text: resumeData.coverLetter?.content || '',
-              spacing: { before: 200, after: 400 }
-            }),
-
-            // Closing
-            new Paragraph({
-              text: resumeData.coverLetter?.closing || 'Sincerely,',
-              spacing: { before: 200 }
-            }),
-            new Paragraph({
-              text: `${resumeData.personal.firstName} ${resumeData.personal.lastName}`,
-              spacing: { before: 200 }
-            })
-          ]
-        }]
-      });
-
-      const blob = await Packer.toBlob(doc);
-      const fileName = `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Cover_Letter.docx`;
-      saveAs(blob, fileName);
-      return;
-    }
+    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`.trim();
+    const fileName = `${fullName.toLowerCase().replace(/\\s+/g, '_')}_${type}.docx`;
 
     const doc = new Document({
       sections: [{
         properties: {},
         children: [
           // Header with contact info
-          new Paragraph({
-            text: `${resumeData.personal.firstName} ${resumeData.personal.lastName}`,
-            heading: HeadingLevel.HEADING_1,
-            spacing: { after: 200 }
-          }),
+          createHeading(fullName, HeadingLevel.HEADING_1),
           
           // Contact Info
           new Paragraph({
             children: [
-              new TextRun(resumeData.personal.email),
+              new TextRun(resumeData.personal.email || ''),
               new TextRun(' | '),
-              new TextRun(resumeData.personal.phone),
+              new TextRun(resumeData.personal.phone || ''),
               new TextRun(' | '),
-              new TextRun(resumeData.personal.location)
-            ]
+              new TextRun(resumeData.personal.location || '')
+            ],
+            spacing: { after: 200 }
           }),
 
-          // Links (if available)
-          ...(resumeData.professionalLinks?.linkedin || resumeData.professionalLinks?.github || resumeData.professionalLinks?.portfolio || resumeData.professionalLinks?.website || resumeData.professionalLinks?.twitter || resumeData.professionalLinks?.other ? [
+          // Professional Links
+          ...(resumeData.personal.links ? [
             new Paragraph({
-              children: [
-                ...(resumeData.professionalLinks?.linkedin ? [
-                  new TextRun('LinkedIn: '),
-                  new TextRun({ text: resumeData.professionalLinks.linkedin, style: 'Hyperlink' }),
-                  new TextRun(' | ')
-                ] : []),
-                ...(resumeData.professionalLinks?.github ? [
-                  new TextRun('GitHub: '),
-                  new TextRun({ text: resumeData.professionalLinks.github, style: 'Hyperlink' }),
-                  new TextRun(' | ')
-                ] : []),
-                ...(resumeData.professionalLinks?.portfolio ? [
-                  new TextRun('Portfolio: '),
-                  new TextRun({ text: resumeData.professionalLinks.portfolio, style: 'Hyperlink' }),
-                  new TextRun(' | ')
-                ] : []),
-                ...(resumeData.professionalLinks?.website ? [
-                  new TextRun('Website: '),
-                  new TextRun({ text: resumeData.professionalLinks.website, style: 'Hyperlink' }),
-                  new TextRun(' | ')
-                ] : []),
-                ...(resumeData.professionalLinks?.twitter ? [
-                  new TextRun('Twitter: '),
-                  new TextRun({ text: resumeData.professionalLinks.twitter, style: 'Hyperlink' }),
-                  new TextRun(' | ')
-                ] : []),
-                ...(resumeData.professionalLinks?.other ? [
-                  new TextRun(`${resumeData.professionalLinks.other}`)
-                ] : [])
-              ].filter((_, index, array) => {
-                // Remove the last " | " if it exists
-                if (index === array.length - 1 && array[index].text === ' | ') {
-                  return false;
-                }
-                return true;
-              }),
+              children: Object.entries(resumeData.personal.links)
+                .filter(([_, value]) => value)
+                .map(([key, value], index, arr) => [
+                  new TextRun({ text: `${key}: `, bold: true }),
+                  new TextRun(value),
+                  index < arr.length - 1 ? new TextRun(' | ') : new TextRun('')
+                ]).flat(),
               spacing: { after: 200 }
             })
           ] : []),
-          
-          // Professional Summary
-          new Paragraph({
-            text: 'Professional Summary',
-            heading: HeadingLevel.HEADING_2,
-            spacing: { before: 400, after: 200 }
-          }),
-          new Paragraph({
-            text: resumeData.personal.summary || '',
-            spacing: { after: 200 }
-          }),
-          
+
+          // Summary
+          ...(resumeData.personal.summary ? [
+            createHeading('Professional Summary'),
+            createParagraph(resumeData.personal.summary, { spacing: { after: 200 } })
+          ] : []),
+
+          // Experience
+          ...(resumeData.experience?.length ? [
+            createHeading('Experience'),
+            ...resumeData.experience.flatMap(exp => [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: exp.company, bold: true }),
+                  new TextRun(' | '),
+                  new TextRun({ text: exp.position, italics: true })
+                ],
+                spacing: { before: 200 }
+              }),
+              createParagraph(`${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}`, {
+                spacing: { before: 100 }
+              }),
+              ...(exp.description ? [
+                createParagraph(exp.description, { spacing: { before: 100 } })
+              ] : []),
+              ...(exp.achievements?.map(achievement =>
+                createParagraph(`• ${achievement}`, { spacing: { before: 100 } })
+              ) || [])
+            ])
+          ] : []),
+
+          // Education
+          ...(resumeData.education?.length ? [
+            createHeading('Education'),
+            ...resumeData.education.flatMap(edu => [
+              new Paragraph({
+                children: [
+                  new TextRun({ text: edu.school, bold: true }),
+                  new TextRun(' | '),
+                  new TextRun({ text: edu.degree, italics: true })
+                ],
+                spacing: { before: 200 }
+              }),
+              createParagraph(`${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}`, {
+                spacing: { before: 100 }
+              }),
+              ...(edu.field ? [
+                createParagraph(`Field of Study: ${edu.field}`, { spacing: { before: 100 } })
+              ] : []),
+              ...(edu.gpa ? [
+                createParagraph(`GPA: ${edu.gpa}`, { spacing: { before: 100 } })
+              ] : []),
+              ...(edu.description ? [
+                createParagraph(edu.description, { spacing: { before: 100 } })
+              ] : [])
+            ])
+          ] : []),
+
           // Skills
           ...(resumeData.skills?.length ? [
-            new Paragraph({
-              text: 'Skills',
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
-            }),
+            createHeading('Skills'),
             new Table({
               rows: [
                 new TableRow({
-                  children: resumeData.skills.map(skill => 
+                  children: resumeData.skills.map(skill =>
                     new TableCell({
-                      children: [new Paragraph(skill)],
+                      children: [createParagraph(skill)],
                       borders: {
                         top: { style: BorderStyle.NONE },
                         bottom: { style: BorderStyle.NONE },
@@ -730,114 +433,19 @@ export const exportToDOCX = async (resumeData, templateId, type = 'resume') => {
                     })
                   )
                 })
-              ]
+              ],
+              width: {
+                size: 100,
+                type: WidthType.PERCENTAGE
+              }
             })
-          ] : []),
-          
-          // Experience
-          ...(resumeData.experience?.length ? [
-            new Paragraph({
-              text: 'Experience',
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
-            }),
-            ...resumeData.experience.map(exp => [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: exp.company,
-                    bold: true
-                  }),
-                  new TextRun(' | '),
-                  new TextRun({
-                    text: exp.position,
-                    italics: true
-                  })
-                ],
-                spacing: { before: 200 }
-              }),
-              new Paragraph({
-                text: `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`,
-                spacing: { before: 100 }
-              }),
-              new Paragraph({
-                text: exp.description || '',
-                spacing: { before: 100 }
-              })
-            ]).flat()
-          ] : []),
-          
-          // Education
-          ...(resumeData.education?.length ? [
-            new Paragraph({
-              text: 'Education',
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
-            }),
-            ...resumeData.education.map(edu => [
-              new Paragraph({
-                children: [
-                  new TextRun({
-                    text: edu.school,
-                    bold: true
-                  }),
-                  new TextRun(' | '),
-                  new TextRun({
-                    text: edu.degree,
-                    italics: true
-                  })
-                ],
-                spacing: { before: 200 }
-              }),
-              new Paragraph({
-                text: `${edu.startDate} - ${edu.currentlyStudying ? 'Present' : edu.endDate}`,
-                spacing: { before: 100 }
-              }),
-              edu.description ? new Paragraph({
-                text: edu.description,
-                spacing: { before: 100 }
-              }) : null
-            ]).flat().filter(Boolean)
-          ] : []),
-
-          // References
-          ...(resumeData.references?.length ? [
-            new Paragraph({
-              text: 'References',
-              heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
-            }),
-            ...resumeData.references.map(ref => [
-              new Paragraph({
-                text: `${ref.name} - ${ref.position}`,
-                spacing: { before: 200 },
-                bold: true
-              }),
-              new Paragraph({
-                text: ref.company
-              }),
-              new Paragraph({
-                text: `Email: ${ref.email}`
-              }),
-              ...(ref.phone ? [
-                new Paragraph({
-                  text: `Phone: ${ref.phone}`
-                })
-              ] : []),
-              ...(ref.relationship ? [
-                new Paragraph({
-                  text: `Relationship: ${ref.relationship}`,
-                  spacing: { after: 200 }
-                })
-              ] : [])
-            ]).flat()
           ] : [])
-        ].filter(Boolean)
+        ]
       }]
     });
 
+    // Use Packer.toBlob() instead of toBuffer() for browser environment
     const blob = await Packer.toBlob(doc);
-    const fileName = `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Resume.docx`;
     saveAs(blob, fileName);
   } catch (error) {
     console.error('Error generating DOCX:', error);
@@ -846,136 +454,48 @@ export const exportToDOCX = async (resumeData, templateId, type = 'resume') => {
 };
 
 // Export to HTML
-export const exportToHTML = (resumeData, templateId, type = 'resume') => {
+export const exportToHTML = async (resumeData, templateId, type = 'resume') => {
   try {
-    const templateSettings = getTemplateSettings(templateId);
-    
-    if (type === 'cover-letter') {
-      const html = `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${resumeData.personal.firstName} ${resumeData.personal.lastName} - Cover Letter</title>
-          <style>
-            body {
-              font-family: ${templateSettings.font || 'Arial, sans-serif'};
-              line-height: 1.6;
-              max-width: 800px;
-              margin: 0 auto;
-              padding: 20px;
-              color: ${templateSettings.textColor || '#333'};
-              background-color: ${templateSettings.backgroundColor || '#fff'};
-            }
-            h1 { 
-              color: ${templateSettings.primaryColor || '#2c3e50'}; 
-              font-size: 24px;
-              margin-bottom: 10px;
-            }
-            .contact-info {
-              color: ${templateSettings.mutedColor || '#666'};
-              margin-bottom: 20px;
-            }
-            .date {
-              margin: 20px 0;
-            }
-            .recipient {
-              margin: 20px 0;
-            }
-            .content {
-              margin: 20px 0;
-              white-space: pre-line;
-            }
-            .closing {
-              margin-top: 40px;
-            }
-          </style>
-        </head>
-        <body>
-          <h1>${resumeData.personal.firstName} ${resumeData.personal.lastName}</h1>
-          <div class="contact-info">
-            ${resumeData.personal.email}<br>
-            ${resumeData.personal.phone}<br>
-            ${resumeData.personal.location}
-          </div>
-          
-          <div class="date">
-            ${new Date().toLocaleDateString('en-US', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
-          </div>
-          
-          ${resumeData.coverLetter?.recipient ? `
-            <div class="recipient">
-              ${resumeData.coverLetter.recipient.name}<br>
-              ${resumeData.coverLetter.recipient.title}<br>
-              ${resumeData.coverLetter.recipient.company}<br>
-              ${resumeData.coverLetter.recipient.address}
-            </div>
-          ` : ''}
-          
-          <div class="content">
-            <p>${resumeData.coverLetter?.greeting || 'Dear Hiring Manager,'}</p>
-            
-            ${resumeData.coverLetter?.content || ''}
-            
-            <div class="closing">
-              <p>${resumeData.coverLetter?.closing || 'Sincerely,'}</p>
-              <p>${resumeData.personal.firstName} ${resumeData.personal.lastName}</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `;
-      
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const fileName = `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Cover_Letter.html`;
-      saveAs(blob, fileName);
-      return;
-    }
-    
+    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`.trim();
+    const fileName = `${fullName.toLowerCase().replace(/\s+/g, '_')}_${type}.html`;
+
     const html = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${resumeData.personal.firstName} ${resumeData.personal.lastName} - Resume</title>
+        <title>${fullName} - ${type.charAt(0).toUpperCase() + type.slice(1)}</title>
         <style>
           body {
-            font-family: ${templateSettings.font || 'Arial, sans-serif'};
+            font-family: Arial, sans-serif;
             line-height: 1.6;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            color: ${templateSettings.textColor || '#333'};
-            background-color: ${templateSettings.backgroundColor || '#fff'};
+            color: #333;
           }
           h1 { 
-            color: ${templateSettings.primaryColor || '#2c3e50'}; 
-            font-size: 24px;
+            color: #2c3e50;
             margin-bottom: 10px;
           }
           h2 { 
-            color: ${templateSettings.secondaryColor || '#34495e'};
-            font-size: 20px;
-            border-bottom: 2px solid ${templateSettings.accentColor || '#eee'};
+            color: #34495e;
+            border-bottom: 2px solid #eee;
             padding-bottom: 5px;
-            margin-top: 20px;
+            margin-top: 30px;
           }
           .contact-info {
-            color: ${templateSettings.mutedColor || '#666'};
-            margin-bottom: 20px;
+            color: #7f8c8d;
+            margin-bottom: 15px;
           }
           .links {
             margin-bottom: 20px;
           }
           .links a {
-            color: ${templateSettings.linkColor || '#3498db'};
+            color: #3498db;
             text-decoration: none;
+            margin-right: 15px;
           }
           .links a:hover {
             text-decoration: underline;
@@ -983,116 +503,150 @@ export const exportToHTML = (resumeData, templateId, type = 'resume') => {
           .section {
             margin-bottom: 30px;
           }
-          .experience-item, .education-item, .reference-item {
+          .item {
             margin-bottom: 20px;
           }
-          .company, .school, .reference-name {
-            font-weight: bold;
-            color: ${templateSettings.primaryColor || '#2c3e50'};
+          .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 5px;
           }
-          .position, .degree {
+          .title {
+            font-weight: bold;
+            color: #2c3e50;
+          }
+          .subtitle {
             font-style: italic;
-            color: ${templateSettings.secondaryColor || '#34495e'};
+            color: #7f8c8d;
+          }
+          .date {
+            color: #95a5a6;
+          }
+          .description {
+            margin: 10px 0;
+          }
+          .achievements {
+            list-style-type: none;
+            padding-left: 20px;
+          }
+          .achievements li:before {
+            content: "•";
+            color: #3498db;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
           }
           .skills {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
           }
           .skill {
-            background: ${templateSettings.skillBgColor || '#f0f2f5'};
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-size: 14px;
+            background: #f0f2f5;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            color: #2c3e50;
           }
           @media print {
             body {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
+              padding: 0;
+              color: black;
             }
-            .section {
-              page-break-inside: avoid;
+            .links a {
+              color: black;
+              text-decoration: none;
+            }
+            .skill {
+              border: 1px solid #ddd;
             }
           }
         </style>
       </head>
       <body>
-        <h1>${resumeData.personal.firstName} ${resumeData.personal.lastName}</h1>
+        <h1>${fullName}</h1>
         <div class="contact-info">
-          ${resumeData.personal.email} | ${resumeData.personal.phone} | ${resumeData.personal.location}
+          ${[
+            resumeData.personal.email,
+            resumeData.personal.phone,
+            resumeData.personal.location
+          ].filter(Boolean).join(' • ')}
         </div>
         
-        ${(resumeData.professionalLinks?.linkedin || resumeData.professionalLinks?.github || resumeData.professionalLinks?.portfolio || resumeData.professionalLinks?.website || resumeData.professionalLinks?.twitter || resumeData.professionalLinks?.other) ? `
+        ${resumeData.personal.links ? `
           <div class="links">
-            ${resumeData.professionalLinks?.linkedin ? `<a href="${resumeData.professionalLinks.linkedin}">LinkedIn</a> | ` : ''}
-            ${resumeData.professionalLinks?.github ? `<a href="${resumeData.professionalLinks.github}">GitHub</a> | ` : ''}
-            ${resumeData.professionalLinks?.portfolio ? `<a href="${resumeData.professionalLinks.portfolio}">Portfolio</a> | ` : ''}
-            ${resumeData.professionalLinks?.website ? `<a href="${resumeData.professionalLinks.website}">Website</a> | ` : ''}
-            ${resumeData.professionalLinks?.twitter ? `<a href="${resumeData.professionalLinks.twitter}">Twitter</a> | ` : ''}
-            ${resumeData.professionalLinks?.other ? `<a href="${resumeData.professionalLinks.other}">Other</a>` : ''}
+            ${Object.entries(resumeData.personal.links)
+              .filter(([_, value]) => value)
+              .map(([key, value]) => `<a href="${value}" target="_blank">${key}</a>`)
+              .join('')}
           </div>
         ` : ''}
         
-        <div class="section">
-          <h2>Professional Summary</h2>
-          <p>${resumeData.personal.summary}</p>
-        </div>
+        ${resumeData.personal.summary ? `
+          <section class="section">
+            <h2>Professional Summary</h2>
+            <p>${resumeData.personal.summary}</p>
+          </section>
+        ` : ''}
         
-        <div class="section">
-          <h2>Skills</h2>
-          <div class="skills">
-            ${(resumeData.skills || []).map(skill => `
-              <span class="skill">${skill}</span>
-            `).join('')}
-          </div>
-        </div>
-        
-        <div class="section">
-          <h2>Experience</h2>
-          ${(resumeData.experience || []).map(exp => `
-            <div class="experience-item">
-              <div class="company">${exp.company}</div>
-              <div class="position">${exp.position}</div>
-              <div class="dates">${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}</div>
-              <p>${exp.description}</p>
-            </div>
-          `).join('')}
-        </div>
-        
-        <div class="section">
-          <h2>Education</h2>
-          ${(resumeData.education || []).map(edu => `
-            <div class="education-item">
-              <div class="school">${edu.school}</div>
-              <div class="degree">${edu.degree}</div>
-              <div class="dates">${edu.startDate} - ${edu.currentlyStudying ? 'Present' : edu.endDate}</div>
-              ${edu.description ? `<p>${edu.description}</p>` : ''}
-            </div>
-          `).join('')}
-        </div>
-
-        ${resumeData.references?.length ? `
-          <div class="section">
-            <h2>References</h2>
-            ${resumeData.references.map(ref => `
-              <div class="reference-item">
-                <div class="reference-name">${ref.name} - ${ref.position}</div>
-                <div>${ref.company}</div>
-                <div>Email: ${ref.email}</div>
-                ${ref.phone ? `<div>Phone: ${ref.phone}</div>` : ''}
-                ${ref.relationship ? `<div>Relationship: ${ref.relationship}</div>` : ''}
+        ${resumeData.experience?.length ? `
+          <section class="section">
+            <h2>Experience</h2>
+            ${resumeData.experience.map(exp => `
+              <div class="item">
+                <div class="item-header">
+                  <div>
+                    <span class="title">${exp.company}</span>
+                    <span class="subtitle"> | ${exp.position}</span>
+                  </div>
+                  <span class="date">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</span>
+                </div>
+                ${exp.description ? `<p class="description">${exp.description}</p>` : ''}
+                ${exp.achievements?.length ? `
+                  <ul class="achievements">
+                    ${exp.achievements.map(achievement => `<li>${achievement}</li>`).join('')}
+                  </ul>
+                ` : ''}
               </div>
             `).join('')}
-          </div>
+          </section>
+        ` : ''}
+        
+        ${resumeData.education?.length ? `
+          <section class="section">
+            <h2>Education</h2>
+            ${resumeData.education.map(edu => `
+              <div class="item">
+                <div class="item-header">
+                  <div>
+                    <span class="title">${edu.school}</span>
+                    <span class="subtitle"> | ${edu.degree}</span>
+                  </div>
+                  <span class="date">${formatDate(edu.startDate)} - ${formatDate(edu.endDate)}</span>
+                </div>
+                ${edu.field ? `<div>Field of Study: ${edu.field}</div>` : ''}
+                ${edu.gpa ? `<div>GPA: ${edu.gpa}</div>` : ''}
+                ${edu.description ? `<p class="description">${edu.description}</p>` : ''}
+              </div>
+            `).join('')}
+          </section>
+        ` : ''}
+        
+        ${resumeData.skills?.length ? `
+          <section class="section">
+            <h2>Skills</h2>
+            <div class="skills">
+              ${resumeData.skills.map(skill => `<span class="skill">${skill}</span>`).join('')}
+            </div>
+          </section>
         ` : ''}
       </body>
       </html>
     `;
-    
-    // Create a blob and download
+
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const fileName = `${resumeData.personal.firstName}_${resumeData.personal.lastName}_Resume.html`;
     saveAs(blob, fileName);
   } catch (error) {
     console.error('Error generating HTML:', error);

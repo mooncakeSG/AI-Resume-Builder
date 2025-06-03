@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { useResume } from '../lib/data/ResumeContext';
 import { useToast } from './ui/ToastProvider';
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Textarea } from "./ui/textarea";
+import { inputStyles } from "@/lib/utils/styles";
+import { cn } from "@/lib/utils";
 
 const CoverLetter = () => {
   const { currentProfile, updateCurrentProfile } = useResume();
@@ -112,121 +117,108 @@ const CoverLetter = () => {
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Cover Letter</h2>
-        <button
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Cover Letter</h2>
+        <Button 
+          variant="default" 
+          className="bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-600 dark:hover:bg-blue-700"
           onClick={handleGenerateCoverLetter}
           disabled={isGenerating}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors disabled:bg-blue-300"
         >
           {isGenerating ? 'Generating...' : 'Generate with AI'}
-        </button>
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Recipient's Name
-          </label>
-          <input
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Recipient's Name</label>
+          <Input
             type="text"
+            placeholder="Dr. Jane Smith"
             value={coverLetter.recipientName || ''}
             onChange={(e) => handleUpdateField('recipientName', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="Dr. Jane Smith"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Recipient's Title
-          </label>
-          <input
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Recipient's Title</label>
+          <Input
             type="text"
+            placeholder="Hiring Manager"
             value={coverLetter.recipientTitle || ''}
             onChange={(e) => handleUpdateField('recipientTitle', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="Hiring Manager"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Company Name
-          </label>
-          <input
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Company Name</label>
+          <Input
             type="text"
+            placeholder="Acme Corporation"
             value={coverLetter.companyName || ''}
             onChange={(e) => handleUpdateField('companyName', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="Acme Corporation"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date
-          </label>
-          <input
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Date</label>
+          <Input
             type="date"
             value={coverLetter.letterDate || ''}
             onChange={(e) => handleUpdateField('letterDate', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
+      </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Company Address
-          </label>
-          <textarea
-            value={coverLetter.companyAddress || ''}
-            onChange={(e) => handleUpdateField('companyAddress', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            rows="2"
-            placeholder="123 Business Ave, Suite 100, City, State 12345"
-          />
-        </div>
+      <div className={inputStyles.formGroup}>
+        <label className={inputStyles.label}>Company Address</label>
+        <Textarea
+          placeholder="123 Business Ave, Suite 100, City, State 12345"
+          value={coverLetter.companyAddress || ''}
+          onChange={(e) => handleUpdateField('companyAddress', e.target.value)}
+          className="dark:bg-gray-800 dark:text-gray-100"
+        />
+      </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Greeting
-          </label>
-          <input
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Greeting</label>
+          <Input
             type="text"
+            placeholder="Dear Dr. Smith,"
             value={coverLetter.greeting || ''}
             onChange={(e) => handleUpdateField('greeting', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="Dear Dr. Smith,"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Closing
-          </label>
-          <input
+        <div className={inputStyles.formGroup}>
+          <label className={inputStyles.label}>Closing</label>
+          <Input
             type="text"
+            placeholder="Sincerely"
             value={coverLetter.closing || ''}
             onChange={(e) => handleUpdateField('closing', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            placeholder="Sincerely,"
+            className="dark:bg-gray-800 dark:text-gray-100"
           />
         </div>
+      </div>
 
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Content
-          </label>
-          <textarea
-            value={coverLetter.content || ''}
-            onChange={(e) => handleUpdateField('content', e.target.value)}
-            className="w-full px-3 py-2 border rounded-md"
-            rows="12"
-            placeholder="Write your cover letter content here..."
-          />
-        </div>
+      <div className={inputStyles.formGroup}>
+        <label className={inputStyles.label}>Letter Content</label>
+        <Textarea
+          placeholder="Write your cover letter content here..."
+          value={coverLetter.content || ''}
+          onChange={(e) => handleUpdateField('content', e.target.value)}
+          className="min-h-[200px] dark:bg-gray-800 dark:text-gray-100"
+        />
       </div>
 
       <div className="bg-gray-50 p-4 rounded-lg">

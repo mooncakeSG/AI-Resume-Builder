@@ -8,7 +8,10 @@ const PersonalDetails = ({ data = {}, onChange }) => {
   const [errors, setErrors] = useState({})
 
   const handleChange = (field, value) => {
-    onChange({ [field]: value })
+    onChange({
+      ...data,
+      [field]: value
+    })
     validateField(field, value)
   }
 
@@ -25,11 +28,15 @@ const PersonalDetails = ({ data = {}, onChange }) => {
       summaryText = String(summary || '');
     }
     
-    onChange({ summary: summaryText });
+    onChange({
+      ...data,
+      summary: summaryText
+    });
   }
 
   const handleLinksSuggestion = (links) => {
     onChange({
+      ...data,
       links: {
         ...(data.links || {}),
         ...links
@@ -40,11 +47,25 @@ const PersonalDetails = ({ data = {}, onChange }) => {
   const validateField = (field, value) => {
     const newErrors = { ...errors }
     switch (field) {
-      case 'name':
+      case 'firstName':
         if (!value?.trim()) {
-          newErrors.name = 'Name is required'
+          newErrors.firstName = 'First Name is required'
         } else {
-          delete newErrors.name
+          delete newErrors.firstName
+        }
+        break
+      case 'lastName':
+        if (!value?.trim()) {
+          newErrors.lastName = 'Last Name is required'
+        } else {
+          delete newErrors.lastName
+        }
+        break
+      case 'title':
+        if (!value?.trim()) {
+          newErrors.title = 'Job Title is required'
+        } else {
+          delete newErrors.title
         }
         break
       case 'email':
@@ -93,6 +114,7 @@ const PersonalDetails = ({ data = {}, onChange }) => {
       return newErrors
     })
     onChange({
+      ...data,
       links: {
         ...(data.links || {}),
         [linkType]: value
@@ -102,160 +124,185 @@ const PersonalDetails = ({ data = {}, onChange }) => {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Personal Details</CardTitle>
-          <CardDescription>Add your contact information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Full Name <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                value={data.name || ''}
-                onChange={(e) => handleChange('name', e.target.value)}
-                error={errors.name}
-                placeholder="John Doe"
-              />
-              {errors.name && (
-                <p className="text-sm text-red-600">{errors.name}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Job Title
-              </label>
-              <Input
-                type="text"
-                value={data.title || ''}
-                onChange={(e) => handleChange('title', e.target.value)}
-                placeholder="e.g., Software Engineer"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Email <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="email"
-                value={data.email || ''}
-                onChange={(e) => handleChange('email', e.target.value)}
-                error={errors.email}
-                placeholder="john@example.com"
-              />
-              {errors.email && (
-                <p className="text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
-              <Input
-                type="tel"
-                value={data.phone || ''}
-                onChange={(e) => handleChange('phone', e.target.value)}
-                error={errors.phone}
-                placeholder="+1 (555) 123-4567"
-              />
-              {errors.phone && (
-                <p className="text-sm text-red-600">{errors.phone}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Location
-              </label>
-              <Input
-                type="text"
-                value={data.location || ''}
-                onChange={(e) => handleChange('location', e.target.value)}
-                placeholder="City, Country"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Industry
-              </label>
-              <Input
-                type="text"
-                value={data.industry || ''}
-                onChange={(e) => handleChange('industry', e.target.value)}
-                placeholder="e.g., Technology, Healthcare"
-              />
-            </div>
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border dark:border-gray-700">
+        <div className="flex items-center justify-between mb-4 border-b dark:border-gray-700 pb-4">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Personal Details</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your contact information</p>
           </div>
-          <div className="mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Professional Links
-              </label>
-              <AISuggest
-                type="links"
-                data={data}
-                onSuggestionSelect={handleLinksSuggestion}
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  LinkedIn
-                </label>
-                <Input
-                  type="url"
-                  value={data.links?.linkedin || ''}
-                  onChange={(e) => handleLinkChange('linkedin', e.target.value)}
-                  error={errors.linkedinLink}
-                  placeholder="https://linkedin.com/in/username"
-                />
-                {errors.linkedinLink && (
-                  <p className="text-sm text-red-600">{errors.linkedinLink}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  GitHub
-                </label>
-                <Input
-                  type="url"
-                  value={data.links?.github || ''}
-                  onChange={(e) => handleLinkChange('github', e.target.value)}
-                  error={errors.githubLink}
-                  placeholder="https://github.com/username"
-                />
-                {errors.githubLink && (
-                  <p className="text-sm text-red-600">{errors.githubLink}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  Portfolio
-                </label>
-                <Input
-                  type="url"
-                  value={data.links?.portfolio || ''}
-                  onChange={(e) => handleLinkChange('portfolio', e.target.value)}
-                  error={errors.portfolioLink}
-                  placeholder="https://yourportfolio.com"
-                />
-                {errors.portfolioLink && (
-                  <p className="text-sm text-red-600">{errors.portfolioLink}</p>
-                )}
-              </div>
-            </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              First Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={data.firstName || ''}
+              onChange={(e) => handleChange('firstName', e.target.value)}
+              error={errors.firstName}
+              placeholder="John"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+            {errors.firstName && (
+              <p className="text-sm text-red-600 dark:text-red-400">{errors.firstName}</p>
+            )}
           </div>
-          <div className="mt-6">
-            <Summary
-              value={data.summary || ''}
-              onChange={handleSummaryChange}
-              data={data}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Last Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              value={data.lastName || ''}
+              onChange={(e) => handleChange('lastName', e.target.value)}
+              error={errors.lastName}
+              placeholder="Doe"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+            {errors.lastName && (
+              <p className="text-sm text-red-600 dark:text-red-400">{errors.lastName}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Job Title
+            </label>
+            <Input
+              type="text"
+              value={data.title || ''}
+              onChange={(e) => handleChange('title', e.target.value)}
+              placeholder="e.g., Software Engineer"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
             />
           </div>
-        </CardContent>
-      </Card>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Email <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="email"
+              value={data.email || ''}
+              onChange={(e) => handleChange('email', e.target.value)}
+              error={errors.email}
+              placeholder="john@example.com"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+            {errors.email && (
+              <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Phone Number
+            </label>
+            <Input
+              type="tel"
+              value={data.phone || ''}
+              onChange={(e) => handleChange('phone', e.target.value)}
+              error={errors.phone}
+              placeholder="+1 (555) 123-4567"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+            {errors.phone && (
+              <p className="text-sm text-red-600 dark:text-red-400">{errors.phone}</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Location
+            </label>
+            <Input
+              type="text"
+              value={data.location || ''}
+              onChange={(e) => handleChange('location', e.target.value)}
+              placeholder="City, Country"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Industry
+            </label>
+            <Input
+              type="text"
+              value={data.industry || ''}
+              onChange={(e) => handleChange('industry', e.target.value)}
+              placeholder="e.g., Technology, Healthcare"
+              className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+            />
+          </div>
+        </div>
+        <div className="mt-6">
+          <div className="flex items-center justify-between mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              Professional Links
+            </label>
+            <AISuggest
+              type="links"
+              data={data}
+              onSuggestionSelect={handleLinksSuggestion}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                LinkedIn
+              </label>
+              <Input
+                type="url"
+                value={data.links?.linkedin || ''}
+                onChange={(e) => handleLinkChange('linkedin', e.target.value)}
+                error={errors.linkedinLink}
+                placeholder="https://linkedin.com/in/username"
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+              />
+              {errors.linkedinLink && (
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.linkedinLink}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                GitHub
+              </label>
+              <Input
+                type="url"
+                value={data.links?.github || ''}
+                onChange={(e) => handleLinkChange('github', e.target.value)}
+                error={errors.githubLink}
+                placeholder="https://github.com/username"
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+              />
+              {errors.githubLink && (
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.githubLink}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                Portfolio
+              </label>
+              <Input
+                type="url"
+                value={data.links?.portfolio || ''}
+                onChange={(e) => handleLinkChange('portfolio', e.target.value)}
+                error={errors.portfolioLink}
+                placeholder="https://yourportfolio.com"
+                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
+              />
+              {errors.portfolioLink && (
+                <p className="text-sm text-red-600 dark:text-red-400">{errors.portfolioLink}</p>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="mt-6">
+          <Summary
+            value={data.summary || ''}
+            onChange={handleSummaryChange}
+            data={data}
+          />
+        </div>
+      </div>
     </div>
   )
 }

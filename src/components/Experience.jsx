@@ -155,16 +155,16 @@ const Experience = ({ data = [], onChange }) => {
     <div className="space-y-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">Experience</h2>
-          <p className="text-sm text-gray-500 mt-1">Add your work experience</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Experience</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your work experience</p>
         </div>
       </div>
 
       {experienceList.map((experience, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-sm p-6 relative">
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 relative border dark:border-gray-700">
           <button
             onClick={() => removeExperience(index)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -175,7 +175,7 @@ const Experience = ({ data = [], onChange }) => {
             <div className="space-y-2">
               <label 
                 htmlFor={`position-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 Position <span className="text-red-500">*</span>
               </label>
@@ -185,18 +185,20 @@ const Experience = ({ data = [], onChange }) => {
                 type="text"
                 value={experience.position || ''}
                 onChange={(e) => handleChange(index, 'position', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-position`] ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-position`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                 placeholder="e.g., Software Engineer"
               />
               {errors[`${index}-position`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-position`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-position`]}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <label 
                 htmlFor={`company-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 Company <span className="text-red-500">*</span>
               </label>
@@ -206,18 +208,20 @@ const Experience = ({ data = [], onChange }) => {
                 type="text"
                 value={experience.company || ''}
                 onChange={(e) => handleChange(index, 'company', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-company`] ? 'border-red-500' : 'border-gray-200'}`}
-                placeholder="Company name"
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-company`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
+                placeholder="e.g., Company Inc."
               />
               {errors[`${index}-company`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-company`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-company`]}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <label 
                 htmlFor={`location-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 Location
               </label>
@@ -227,15 +231,15 @@ const Experience = ({ data = [], onChange }) => {
                 type="text"
                 value={experience.location || ''}
                 onChange={(e) => handleChange(index, 'location', e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-lg"
-                placeholder="City, Country"
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+                placeholder="e.g., New York, NY"
               />
             </div>
 
             <div className="space-y-2">
               <label 
                 htmlFor={`industry-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 Industry
               </label>
@@ -245,15 +249,15 @@ const Experience = ({ data = [], onChange }) => {
                 type="text"
                 value={experience.industry || ''}
                 onChange={(e) => handleChange(index, 'industry', e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-lg"
-                placeholder="e.g., Technology, Healthcare"
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+                placeholder="e.g., Technology"
               />
             </div>
 
             <div className="space-y-2">
               <label 
                 htmlFor={`startDate-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 Start Date <span className="text-red-500">*</span>
               </label>
@@ -263,17 +267,19 @@ const Experience = ({ data = [], onChange }) => {
                 type="month"
                 value={experience.startDate || ''}
                 onChange={(e) => handleChange(index, 'startDate', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
               />
               {errors[`${index}-startDate`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-startDate`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-startDate`]}</p>
               )}
             </div>
 
             <div className="space-y-2">
               <label 
                 htmlFor={`endDate-${index}`}
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
               >
                 End Date
               </label>
@@ -285,17 +291,14 @@ const Experience = ({ data = [], onChange }) => {
                   value={experience.endDate || ''}
                   onChange={(e) => handleChange(index, 'endDate', e.target.value)}
                   disabled={experience.current}
-                  className="flex-1 p-3 border border-gray-200 rounded-lg disabled:bg-gray-100"
-                  min={experience.startDate}
+                  className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 disabled:opacity-50"
                 />
-                <label className="flex items-center gap-2 text-sm text-gray-600">
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
                   <input
-                    id={`current-${index}`}
-                    name={`current-${index}`}
                     type="checkbox"
-                    checked={experience.current || false}
+                    checked={experience.current}
                     onChange={(e) => handleChange(index, 'current', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
                   />
                   Current
                 </label>
@@ -305,7 +308,7 @@ const Experience = ({ data = [], onChange }) => {
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Description
               </label>
               <AISuggest
@@ -317,15 +320,15 @@ const Experience = ({ data = [], onChange }) => {
             <textarea
               value={experience.description || ''}
               onChange={(e) => handleChange(index, 'description', e.target.value)}
-              className="w-full p-3 border border-gray-200 rounded-lg"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
               rows={4}
-              placeholder="Describe your role, responsibilities, and key contributions"
+              placeholder="Describe your role, responsibilities, and key accomplishments"
             />
           </div>
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Key Achievements
               </label>
               <AISuggest
@@ -348,12 +351,12 @@ const Experience = ({ data = [], onChange }) => {
                       newList[index].achievements[achievementIndex] = e.target.value;
                       setExperienceList(newList);
                     }}
-                    className="flex-grow p-2 border border-gray-200 rounded-lg text-sm"
+                    className="flex-grow p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
                     rows={2}
                   />
                   <button
                     onClick={() => removeAchievement(index, achievementIndex)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -367,7 +370,7 @@ const Experience = ({ data = [], onChange }) => {
                   newList[index].achievements = [...(newList[index].achievements || []), ''];
                   setExperienceList(newList);
                 }}
-                className="text-sm text-blue-500 hover:text-blue-600 flex items-center gap-1"
+                className="text-sm text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
@@ -379,7 +382,7 @@ const Experience = ({ data = [], onChange }) => {
 
           <div className="mt-6">
             <div className="flex items-center justify-between mb-4">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Professional Links
               </label>
               <AISuggest
@@ -396,7 +399,7 @@ const Experience = ({ data = [], onChange }) => {
               <div className="space-y-2">
                 <label 
                   htmlFor={`portfolio-${index}`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                 >
                   Project/Portfolio Link
                 </label>
@@ -406,17 +409,19 @@ const Experience = ({ data = [], onChange }) => {
                   type="url"
                   value={experience.links?.portfolio || ''}
                   onChange={(e) => handleLinkChange(index, 'portfolio', e.target.value)}
-                  className={`w-full p-3 border rounded-lg ${errors[`${index}-portfolioLink`] ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                    errors[`${index}-portfolioLink`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                   placeholder="https://..."
                 />
                 {errors[`${index}-portfolioLink`] && (
-                  <p className="text-sm text-red-600">{errors[`${index}-portfolioLink`]}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-portfolioLink`]}</p>
                 )}
               </div>
               <div className="space-y-2">
                 <label 
                   htmlFor={`company-website-${index}`}
-                  className="block text-sm font-medium text-gray-700"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
                 >
                   Company Website
                 </label>
@@ -426,11 +431,13 @@ const Experience = ({ data = [], onChange }) => {
                   type="url"
                   value={experience.links?.company || ''}
                   onChange={(e) => handleLinkChange(index, 'company', e.target.value)}
-                  className={`w-full p-3 border rounded-lg ${errors[`${index}-companyLink`] ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                    errors[`${index}-companyLink`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                   placeholder="https://company.com"
                 />
                 {errors[`${index}-companyLink`] && (
-                  <p className="text-sm text-red-600">{errors[`${index}-companyLink`]}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-companyLink`]}</p>
                 )}
               </div>
             </div>
@@ -440,7 +447,7 @@ const Experience = ({ data = [], onChange }) => {
 
       <button
         onClick={addExperience}
-        className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+        className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
       >
         + Add Experience
       </button>

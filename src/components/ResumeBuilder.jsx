@@ -55,7 +55,8 @@ const DEFAULT_RESUME_DATA = {
       startDate: '',
       endDate: '',
       description: '',
-      achievements: []
+      achievements: [],
+      gpa: ''
     }
   ]
 };
@@ -163,14 +164,7 @@ const ResumeBuilder = () => {
             onChange={(updatedPersonal) =>
               setResumeData((prev) => ({
                 ...prev,
-                personal: {
-                  ...prev.personal,
-                  ...updatedPersonal,
-                  summary:
-                    typeof updatedPersonal.summary === 'object' && updatedPersonal.summary !== null
-                      ? updatedPersonal.summary.summary || updatedPersonal.summary.text || ''
-                      : (updatedPersonal.summary !== undefined ? updatedPersonal.summary : prev.personal.summary)
-                },
+                personal: updatedPersonal
               }))
             }
           />

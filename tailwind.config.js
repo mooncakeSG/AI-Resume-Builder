@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
+  darkMode: "class",
   content: [
     "./index.html",
     "./src/**/*.{js,jsx,ts,tsx}",
@@ -14,6 +14,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        poppins: ['Poppins', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -68,11 +71,68 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            maxWidth: '65ch',
+            color: 'var(--tw-prose-body)',
+            '[class~="lead"]': {
+              color: 'var(--tw-prose-lead)',
+            },
+            strong: {
+              color: 'var(--tw-prose-bold)',
+            },
+            'ol > li::marker': {
+              color: 'var(--tw-prose-counters)',
+            },
+            'ul > li::marker': {
+              color: 'var(--tw-prose-bullets)',
+            },
+            hr: {
+              borderColor: 'var(--tw-prose-hr)',
+            },
+            blockquote: {
+              color: 'var(--tw-prose-quotes)',
+              borderLeftColor: 'var(--tw-prose-quote-borders)',
+            },
+            h1: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h2: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h3: {
+              color: 'var(--tw-prose-headings)',
+            },
+            h4: {
+              color: 'var(--tw-prose-headings)',
+            },
+            code: {
+              color: 'var(--tw-prose-code)',
+            },
+            'a code': {
+              color: 'var(--tw-prose-links)',
+            },
+            pre: {
+              color: 'var(--tw-prose-pre-code)',
+              backgroundColor: 'var(--tw-prose-pre-bg)',
+            },
+            thead: {
+              color: 'var(--tw-prose-th)',
+              borderBottomColor: 'var(--tw-prose-th-borders)',
+            },
+            'tbody tr': {
+              borderBottomColor: 'var(--tw-prose-td-borders)',
+            },
+          },
+        },
+      },
     },
   },
   plugins: [
     require("tailwindcss-animate"),
-    require("daisyui")
+    require("daisyui"),
+    require("@tailwindcss/typography"),
   ],
   daisyui: {
     themes: ["light", "dark"],

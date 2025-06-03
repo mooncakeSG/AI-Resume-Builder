@@ -144,6 +144,7 @@ const ProfessionalTemplate = ({ data, settings }) => {
               </div>
               <div className="text-gray-700 font-medium">{edu.school}</div>
               {edu.field && <div className="text-gray-600">Field: {edu.field}</div>}
+              {edu.gpa && <div className="text-gray-600">GPA: {edu.gpa}</div>}
               {edu.description && <p className="text-gray-600 mt-1">{edu.description}</p>}
             </div>
           ))}

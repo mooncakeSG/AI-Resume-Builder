@@ -817,7 +817,17 @@ export const suggestSummary = async (data) => {
       return achievements;
     }, []) || [];
 
-    const context = {
+    const formattedData = {
+      personal: {
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        location: data.location || '',
+        summary: data.summary || '',
+        title: data.title || '',
+        industry: data.industry || '',
+      },
       careerType: data.careerType || '',
       yearsOfExperience: Math.round(yearsOfExperience),
       hasExperience,
@@ -843,11 +853,11 @@ export const suggestSummary = async (data) => {
       professionalLinks: Object.keys(data.professionalLinks || {}).filter(k => data.professionalLinks[k])
     };
 
-    const response = await callGroq(PROMPTS.SUMMARY, JSON.stringify(context));
+    const response = await callGroq(PROMPTS.SUMMARY, JSON.stringify(formattedData));
     
     if (!response || response.includes('undefined') || response.includes('[object Object]')) {
       console.warn('Invalid summary generated, using fallback');
-      return generateFallbackSummary(context);
+      return generateFallbackSummary(formattedData);
     }
 
     return response.trim();

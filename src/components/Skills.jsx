@@ -90,11 +90,11 @@ const Skills = ({ data = [], onChange, experience = [] }) => {
   }
 
   return (
-    <div className="space-y-8 bg-white rounded-lg shadow-sm p-6">
-      <div className="flex items-center justify-between border-b pb-4">
+    <div className="space-y-8 bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border dark:border-gray-700">
+      <div className="flex items-center justify-between border-b dark:border-gray-700 pb-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">Skills</h2>
-          <p className="text-sm text-gray-500 mt-1">Add your technical and professional skills</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Skills</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your technical and professional skills</p>
         </div>
         <AISuggest
           type="skills"
@@ -111,13 +111,13 @@ const Skills = ({ data = [], onChange, experience = [] }) => {
                 type="text"
                 value={skill}
                 onChange={(e) => handleSkillChange(index, e.target.value)}
-                className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200"
                 placeholder="Enter skill (e.g., JavaScript, Project Management)"
               />
             </div>
             <button
               onClick={() => removeSkill(index)}
-              className="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
               title="Remove skill"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ const Skills = ({ data = [], onChange, experience = [] }) => {
 
       <button
         onClick={addSkill}
-        className="w-full p-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:text-gray-700 hover:border-gray-400 transition-colors"
+        className="w-full p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-400 dark:hover:border-gray-500 transition-colors"
       >
         + Add Skill
       </button>

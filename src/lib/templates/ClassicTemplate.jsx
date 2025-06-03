@@ -19,7 +19,7 @@ export const ClassicTemplate = ({ data, settings }) => {
 
   return (
     <div 
-      className="classic-template grid grid-cols-3 gap-6"
+      className="classic-template grid grid-cols-3 gap-6 min-h-full"
       style={{
         fontFamily: typography.fontFamily,
         color: colorScheme.secondary,
@@ -28,33 +28,78 @@ export const ClassicTemplate = ({ data, settings }) => {
       }}
     >
       {/* Left Column */}
-      <div className="col-span-1 bg-gray-50 p-6">
+      <div className="col-span-1 bg-gray-50 p-6 flex flex-col">
         {/* Personal Info */}
         <div className="mb-8">
           <h1 
-            className="text-2xl font-bold mb-2"
+            className="text-2xl font-bold mb-4"
             style={{ color: colorScheme.primary }}
           >
-            {personal?.firstName}<br />{personal?.lastName}
+            {personal?.firstName} {personal?.lastName}
           </h1>
           <div className="space-y-2 text-sm">
             {personal?.email && (
-              <div>
-                <a href={`mailto:${personal.email}`} className="hover:text-blue-600">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                  <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                </svg>
+                <a href={`mailto:${personal.email}`} className="hover:text-blue-600 break-all">
                   {personal.email}
                 </a>
               </div>
             )}
             {personal?.phone && (
-              <div>{personal.phone}</div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                </svg>
+                <span className="break-all">{personal.phone}</span>
+              </div>
             )}
             {personal?.location && (
-              <div>{personal.location}</div>
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                </svg>
+                <span className="break-all">{personal.location}</span>
+              </div>
             )}
           </div>
-          {/* Professional Links */}
-          {professionalLinks && Object.values(professionalLinks).some(link => link) && (
-            <div className="mt-4 space-y-2">
+        </div>
+
+        {/* Skills Section */}
+        {skills?.length > 0 && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              Skills
+            </h2>
+            <div className="grid grid-cols-1 gap-2">
+              {skills.map((skill, index) => (
+                <div
+                  key={index}
+                  className="text-sm py-1 px-2 bg-white rounded-md shadow-sm"
+                >
+                  {skill}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Professional Links */}
+        {professionalLinks && Object.values(professionalLinks).some(link => link) && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              Links
+            </h2>
+            <div className="space-y-2">
               {professionalLinks.linkedin && (
                 <div>
                   <a
@@ -146,34 +191,12 @@ export const ClassicTemplate = ({ data, settings }) => {
                 </div>
               )}
             </div>
-          )}
-        </div>
-
-        {/* Skills Section */}
-        {skills?.length > 0 && (
-          <section className="mb-8">
-            <h2 
-              className="text-lg font-bold mb-4 pb-2 border-b"
-              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
-            >
-              Skills
-            </h2>
-            <div className="space-y-2">
-              {skills.map((skill, index) => (
-                <div
-                  key={index}
-                  className="text-sm py-1"
-                >
-                  {skill}
-                </div>
-              ))}
-            </div>
           </section>
         )}
 
         {/* Education Section */}
         {education?.length > 0 && (
-          <section>
+          <section className="mb-8">
             <h2 
               className="text-lg font-bold mb-4 pb-2 border-b"
               style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
@@ -182,15 +205,15 @@ export const ClassicTemplate = ({ data, settings }) => {
             </h2>
             <div className="space-y-4">
               {education.map((edu, index) => (
-                <div key={index} className="text-sm">
+                <div key={index} className="text-sm bg-white p-3 rounded-md shadow-sm">
                   <h3 className="font-medium" style={{ color: colorScheme.primary }}>
                     {edu.degree}
                   </h3>
-                  <div className="text-sm">{edu.institution}</div>
+                  <div className="text-sm font-medium">{edu.school}</div>
                   {edu.location && (
                     <div className="text-sm opacity-75">{edu.location}</div>
                   )}
-                  <div className="text-sm opacity-75">
+                  <div className="text-sm opacity-75 mt-1">
                     {edu.startDate && (
                       <span>
                         {new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -203,7 +226,7 @@ export const ClassicTemplate = ({ data, settings }) => {
                   {edu.achievements?.length > 0 && (
                     <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
                       {edu.achievements.map((achievement, i) => (
-                        <li key={i}>{achievement}</li>
+                        <li key={i} className="break-words">{achievement}</li>
                       ))}
                     </ul>
                   )}
@@ -225,7 +248,7 @@ export const ClassicTemplate = ({ data, settings }) => {
             >
               Professional Summary
             </h2>
-            <p className="text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
               {getSummaryText(personal.summary)}
             </p>
           </section>

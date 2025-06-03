@@ -112,16 +112,16 @@ const Education = ({ data, onChange }) => {
     <div className="space-y-8">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-800">Education</h2>
-          <p className="text-sm text-gray-500 mt-1">Add your educational background</p>
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Education</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Add your educational background</p>
         </div>
       </div>
 
       {educationList.map((education, index) => (
-        <div key={index} className="bg-white rounded-lg shadow-sm p-6 relative">
+        <div key={index} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 relative border dark:border-gray-700">
           <button
             onClick={() => removeEducation(index)}
-            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 transition-colors"
+            className="absolute top-4 right-4 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -130,87 +130,110 @@ const Education = ({ data, onChange }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 School/University <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={education.school || ''}
                 onChange={(e) => handleChange(index, 'school', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-school`] ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-school`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                 placeholder="University name"
               />
               {errors[`${index}-school`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-school`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-school`]}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Degree <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={education.degree || ''}
                 onChange={(e) => handleChange(index, 'degree', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-degree`] ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-degree`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                 placeholder="e.g., Bachelor's, Master's"
               />
               {errors[`${index}-degree`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-degree`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-degree`]}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Field of Study <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={education.field || ''}
                 onChange={(e) => handleChange(index, 'field', e.target.value)}
-                className={`w-full p-3 border rounded-lg ${errors[`${index}-field`] ? 'border-red-500' : 'border-gray-200'}`}
+                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                  errors[`${index}-field`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                 placeholder="e.g., Computer Science"
               />
               {errors[`${index}-field`] && (
-                <p className="text-sm text-red-600">{errors[`${index}-field`]}</p>
+                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-field`]}</p>
               )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   Start Date <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="month"
                   value={education.startDate || ''}
                   onChange={(e) => handleChange(index, 'startDate', e.target.value)}
-                  className={`w-full p-3 border rounded-lg ${errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200'}`}
+                  className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
+                    errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
+                  } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
                 />
                 {errors[`${index}-startDate`] && (
-                  <p className="text-sm text-red-600">{errors[`${index}-startDate`]}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-startDate`]}</p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                   End Date
                 </label>
                 <input
                   type="month"
                   value={education.endDate || ''}
                   onChange={(e) => handleChange(index, 'endDate', e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-lg"
-                  min={education.startDate}
+                  className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+                GPA
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                max="4.0"
+                value={education.gpa || ''}
+                onChange={(e) => handleChange(index, 'gpa', e.target.value)}
+                className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200"
+                placeholder="e.g., 3.8"
+              />
             </div>
           </div>
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Description
               </label>
               <AISuggest
@@ -230,7 +253,7 @@ const Education = ({ data, onChange }) => {
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Key Achievements
               </label>
               <AISuggest

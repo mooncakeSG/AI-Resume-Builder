@@ -1,4 +1,4 @@
-# AI Resume Builder
+# JOBReady AI
 
 A modern, AI-powered resume builder that helps create professional, ATS-friendly resumes with intelligent content suggestions and multiple export formats.
 
