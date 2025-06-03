@@ -11,7 +11,7 @@ This directory contains screenshots of the AI Resume Builder application interfa
 5. `education.png` - Education section interface
 6. `skills.png` - Skills management interface
 7. `references.png` - References section
-8. `ai-suggestions.png` - AI content suggestions interface
+8. [(https://i.ibb.co/7NTJGQfL/20250603-airesumebuilder-netlify-app-galaxys8s9-3.png)] - AI content suggestions interface
 9. `ats-check.png` - ATS compatibility checker
 10. `cover-letter.png` - Cover letter generator
 11. `resume-preview.png` - Resume preview and export options
