@@ -2,118 +2,116 @@
 
 ## 1. Getting Started
 
-### Home Page
-[Screenshot: Home page showing template selection]
-- Clean, intuitive interface
-- Quick start options
-- Template previews
-
-### Template Selection
-[Screenshot: Template gallery]
-- Modern Template
-- Minimal Template
-- Professional Template
-- Classic Template
-
-## 2. Building Your Resume
+### Home Page and Navigation
+![Home page showing template selection](screenshots/home-profiles.png)
+- Clean, intuitive interface with template selection
+- Profile management system
+- Quick access to all sections
+- Import/Export functionality
 
 ### Personal Information
-[Screenshot: Personal info form]
-- Basic contact details
-- Professional links
+![Personal Details Form](screenshots/personal-details.png)
+- Basic contact information
+- Professional links integration
 - Career field selection
+- Location and contact details
 - AI-powered summary generation
 
-### Professional Experience
-[Screenshot: Experience section]
-- Work history entry
-- AI content enhancement
-- Achievement suggestions
-- Formatting options
+## 2. Main Features
+
+### Professional Summary and Links
+![Professional Summary](screenshots/professional-links.png)
+- AI-assisted summary generation
+- Professional links section
+  - LinkedIn integration
+  - GitHub profile
+  - Portfolio website
+- Smart suggestions for content improvement
+
+### Experience Section
+![Experience Section](screenshots/experience.png)
+- Work history management
+- AI content suggestions
+- Industry-specific recommendations
+- ATS compatibility checking
 
 ### Education Section
-[Screenshot: Education form]
-- Degree information
-- Academic achievements
-- Course highlights
-- AI description generation
+![Education Section](screenshots/education.png)
+- Educational background input
+- AI-powered content enhancement
+- Industry-tailored suggestions
+- Compatibility analysis
 
 ### Skills Management
-[Screenshot: Skills section]
-- Skill categorization
+![Skills Section](screenshots/skills.png)
+- Technical and professional skills
 - AI skill suggestions
-- Proficiency levels
-- Industry-specific recommendations
+- Add/Remove functionality
+- Skill categorization
+
+### References
+![References Section](screenshots/references.png)
+- Reference management
+- Contact information
+- Professional relationship
+- Easy addition/removal
 
 ## 3. AI Features
 
-### ATS Compatibility Check
-[Screenshot: ATS analysis]
-- Overall score
-- Section-by-section analysis
-- Improvement suggestions
+### Content Suggestions
+![AI Content Suggestions](screenshots/ai-suggestions.png)
+- Industry selection
+- Role-specific suggestions
+- Content improvement
+- Smart recommendations
+
+### ATS Compatibility
+![ATS Checker](screenshots/ats-check.png)
+- Resume analysis
 - Keyword optimization
-
-### Job Description Matching
-[Screenshot: Job matching]
-- Match percentage
-- Missing keywords
-- Required skills
-- Improvement areas
-
-### Content Enhancement
-[Screenshot: AI suggestions]
-- Smart content generation
-- Phrase improvements
-- Achievement formatting
-- Industry-specific language
-
-## 4. Template Customization
-
-### Design Options
-[Screenshot: Customization panel]
-- Color schemes
-- Font selection
-- Layout adjustments
-- Spacing controls
-
-### Preview Mode
-[Screenshot: Preview screen]
-- Real-time preview
-- Mobile view
-- Print preview
-- Format checking
-
-## 5. Export Options
-
-### Format Selection
-[Screenshot: Export options]
-- PDF export
-- DOCX format
-- HTML version
-- Quality settings
-
-### Final Review
-[Screenshot: Export preview]
 - Format verification
-- Content check
-- Layout confirmation
-- Download options
+- Improvement suggestions
 
-## 6. Additional Features
+## 4. Document Generation
 
-### Local Storage
-[Screenshot: Save/Load options]
-- Auto-save functionality
-- Version history
-- Data backup
-- Privacy settings
+### Cover Letter Generation
+![Cover Letter Generator](screenshots/cover-letter.png)
+- AI-powered generation
+- Professional formatting
+- Customizable fields:
+  - Recipient details
+  - Company information
+  - Custom greeting and closing
 
-### Profile Management
-[Screenshot: Profile dashboard]
-- Multiple resumes
-- Template switching
-- Content library
-- Update history
+### Resume Preview and Export
+![Resume Preview](screenshots/resume-preview.png)
+- Real-time preview
+- Multiple format export
+- Print functionality
+- Layout verification
 
-[Note: Actual screenshots to be added during implementation. Each section should include relevant UI elements and feature highlights.] 
+## 5. Profile Management
+
+### Resume Profiles
+![Profile Management](screenshots/profile-management.png)
+- Multiple resume versions
+- Import/Export capabilities
+- Profile renaming
+- Easy management
+
+## Using the Interface
+
+### Navigation Tips
+- Use the top navigation bar to switch between sections
+- AI suggest buttons provide context-specific help
+- Save progress automatically
+- Export in multiple formats
+
+### Best Practices
+1. Fill in all sections completely
+2. Use AI suggestions for optimization
+3. Check ATS compatibility regularly
+4. Preview before finalizing
+5. Keep multiple versions for different jobs
+
+[Note: The interface is designed to be intuitive and user-friendly, with consistent styling and clear calls-to-action throughout.] 

@@ -15,10 +15,17 @@
 - Internet connection for AI features
 - JavaScript enabled
 
-### First Time Setup
-1. Visit the application URL
-2. Create a profile or continue as guest
-3. Choose a template to start with
+### Creating Your First Resume
+
+1. **Access the Application**
+   - Visit [AI Resume Builder](https://airesumebuilder.netlify.app/)
+   - Click "New Profile" to start (See [Profile Management](screenshots/profile-management.png))
+
+2. **Fill Personal Information**
+   - Enter your basic details (See [Personal Details Form](screenshots/personal-details.png))
+   - Add professional links (LinkedIn, GitHub, Portfolio)
+   - Select your career field
+   - Use AI to generate a professional summary
 
 ## Creating Your Resume
 
@@ -153,23 +160,20 @@
 1. **Content Not Saving**
    - Check internet connection
    - Clear browser cache
-   - Try saving again
+   - Use backup export feature
+   - Contact support if persistent
 
 2. **Export Problems**
-   - Ensure all sections are complete
-   - Check file permissions
-   - Try a different browser
-
-3. **AI Features Not Working**
-   - Check internet connection
-   - Verify API access
-   - Try again later
+   - Verify file format
+   - Check document size
+   - Clear browser downloads
+   - Try alternative format
 
 ### Getting Help
+- Review documentation
 - Check FAQ section
-- Contact support
-- Visit documentation
-- Join community forum
+- Contact support team
+- Join user community
 
 ## Privacy & Data
 
