@@ -30,6 +30,118 @@ export default function JobMatcher({ resumeData }) {
   const [analysis, setAnalysis] = useState(null);
   const [error, setError] = useState(null);
 
+  // Helper function to generate recruiter insights
+  const generateRecruiterInsights = (matches, missing) => {
+    const strengths = [];
+    const improvements = [];
+
+    // Generate strengths based on matched keywords
+    if (matches && matches.length > 0) {
+      // Group related skills
+      const skillGroups = matches.reduce((groups, skill) => {
+        const skillLower = skill.toLowerCase();
+        if (skillLower.includes('develop') || skillLower.includes('program') || skillLower.includes('code')) {
+          groups.development = groups.development || [];
+          groups.development.push(skill);
+        } else if (skillLower.includes('manage') || skillLower.includes('lead') || skillLower.includes('coordinate')) {
+          groups.leadership = groups.leadership || [];
+          groups.leadership.push(skill);
+        } else if (skillLower.includes('analy') || skillLower.includes('solve') || skillLower.includes('research')) {
+          groups.analytical = groups.analytical || [];
+          groups.analytical.push(skill);
+        } else if (skillLower.includes('communicate') || skillLower.includes('present') || skillLower.includes('collaborate')) {
+          groups.communication = groups.communication || [];
+          groups.communication.push(skill);
+        } else {
+          groups.other = groups.other || [];
+          groups.other.push(skill);
+        }
+        return groups;
+      }, {});
+
+      // Generate strength statements
+      Object.entries(skillGroups).forEach(([category, skills]) => {
+        if (skills.length > 0) {
+          switch (category) {
+            case 'development':
+              strengths.push(`Strong technical background with expertise in ${skills.slice(0, 3).join(', ')}`);
+              break;
+            case 'leadership':
+              strengths.push(`Demonstrated leadership abilities through ${skills.slice(0, 2).join(' and ')}`);
+              break;
+            case 'analytical':
+              strengths.push(`Excellent analytical skills including ${skills.slice(0, 2).join(' and ')}`);
+              break;
+            case 'communication':
+              strengths.push(`Strong communication skills highlighted by ${skills.slice(0, 2).join(' and ')}`);
+              break;
+            case 'other':
+              if (skills.length >= 2) {
+                strengths.push(`Additional valuable skills include ${skills.slice(0, 2).join(' and ')}`);
+              }
+              break;
+          }
+        }
+      });
+    }
+
+    // Generate improvements based on missing keywords
+    if (missing && missing.length > 0) {
+      const missingCategories = {
+        technical: missing.filter(skill => 
+          skill.toLowerCase().includes('develop') || 
+          skill.toLowerCase().includes('program') ||
+          skill.toLowerCase().includes('technical') ||
+          skill.toLowerCase().includes('software')
+        ),
+        soft: missing.filter(skill => 
+          skill.toLowerCase().includes('communicate') || 
+          skill.toLowerCase().includes('collaborate') ||
+          skill.toLowerCase().includes('manage') ||
+          skill.toLowerCase().includes('lead')
+        ),
+        domain: missing.filter(skill => 
+          skill.toLowerCase().includes('industry') || 
+          skill.toLowerCase().includes('business') ||
+          skill.toLowerCase().includes('experience')
+        ),
+        certification: missing.filter(skill => 
+          skill.toLowerCase().includes('certif') || 
+          skill.toLowerCase().includes('degree') ||
+          skill.toLowerCase().includes('qualification')
+        )
+      };
+
+      // Generate improvement suggestions
+      if (missingCategories.technical.length > 0) {
+        improvements.push(`Consider adding experience with ${missingCategories.technical.slice(0, 2).join(' and ')} to strengthen technical qualifications`);
+      }
+      if (missingCategories.soft.length > 0) {
+        improvements.push(`Highlight experience in ${missingCategories.soft.slice(0, 2).join(' and ')} to demonstrate broader skill set`);
+      }
+      if (missingCategories.domain.length > 0) {
+        improvements.push(`Add relevant experience in ${missingCategories.domain.slice(0, 2).join(' or ')} to show domain expertise`);
+      }
+      if (missingCategories.certification.length > 0) {
+        improvements.push(`Include relevant ${missingCategories.certification[0].toLowerCase()} to meet job requirements`);
+      }
+    }
+
+    // Ensure we have at least some generic insights if nothing specific was generated
+    if (strengths.length === 0) {
+      strengths.push('Resume contains some relevant skills for the position');
+    }
+    if (improvements.length === 0 && analysis.score < 70) {
+      improvements.push('Add more specific keywords from the job description');
+      improvements.push('Quantify achievements with specific metrics');
+    }
+
+    return {
+      strengths: strengths.slice(0, 3),
+      improvements: improvements.slice(0, 3)
+    };
+  };
+
   const analyzeMatch = async () => {
     if (!jobDescription.trim()) {
       setError('Please enter a job description to analyze.');
@@ -218,12 +330,12 @@ export default function JobMatcher({ resumeData }) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <Card className="bg-gray-50">
                         <CardContent className="p-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Strengths</h4>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Key Strengths</h4>
                           <ul className="space-y-2">
-                            {analysis.matches && analysis.matches.slice(0, 3).map((strength, index) => (
+                            {generateRecruiterInsights(analysis.matches, analysis.missing).strengths.map((strength, index) => (
                               <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
                                 <CheckCircle2 className="h-4 w-4 mt-1 text-green-500" />
-                                <span>Strong match for "{strength}"</span>
+                                <span>{strength}</span>
                               </li>
                             ))}
                           </ul>
@@ -231,12 +343,12 @@ export default function JobMatcher({ resumeData }) {
                       </Card>
                       <Card className="bg-gray-50">
                         <CardContent className="p-4">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Improvement Areas</h4>
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Areas for Enhancement</h4>
                           <ul className="space-y-2">
-                            {analysis.missing && analysis.missing.slice(0, 3).map((area, index) => (
+                            {generateRecruiterInsights(analysis.matches, analysis.missing).improvements.map((area, index) => (
                               <li key={index} className="flex items-start gap-2 text-sm text-gray-600">
                                 <ArrowRight className="h-4 w-4 mt-1 text-red-500" />
-                                <span>Consider adding "{area}"</span>
+                                <span>{area}</span>
                               </li>
                             ))}
                           </ul>
