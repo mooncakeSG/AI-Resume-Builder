@@ -14,7 +14,21 @@ const defaultProfile = {
     personal: {},
     education: [],
     experience: [],
-    skills: []
+    skills: [],
+    certifications: [],
+    languages: [],
+    projects: [],
+    references: [],
+    coverLetter: {
+      jobDetails: {
+        company: '',
+        position: '',
+        jobDescription: '',
+        requirements: '',
+        hiringManager: ''
+      },
+      content: ''
+    }
   }
 };
 
@@ -60,7 +74,21 @@ export function ResumeProvider({ children }) {
         personal: {},
         education: [],
         experience: [],
-        skills: []
+        skills: [],
+        certifications: [],
+        languages: [],
+        projects: [],
+        references: [],
+        coverLetter: {
+          jobDetails: {
+            company: '',
+            position: '',
+            jobDescription: '',
+            requirements: '',
+            hiringManager: ''
+          },
+          content: ''
+        }
       }
     };
 
@@ -73,12 +101,35 @@ export function ResumeProvider({ children }) {
 
   // Update current profile data
   const updateCurrentProfile = useCallback((data) => {
+    // Ensure all required sections exist when updating
+    const safeData = {
+      personal: {},
+      education: [],
+      experience: [],
+      skills: [],
+      certifications: [],
+      languages: [],
+      projects: [],
+      references: [],
+      coverLetter: {
+        jobDetails: {
+          company: '',
+          position: '',
+          jobDescription: '',
+          requirements: '',
+          hiringManager: ''
+        },
+        content: ''
+      },
+      ...data // Merge with provided data
+    };
+
     const updatedProfiles = profiles.map(profile => 
       profile.id === currentProfileId
         ? {
             ...profile,
             lastModified: new Date().toISOString(),
-            data
+            data: safeData
           }
         : profile
     );
@@ -150,20 +201,80 @@ export function ResumeProvider({ children }) {
   // Import profile data
   const importProfile = useCallback((importedData) => {
     try {
-      const profile = {
-        ...importedData,
-        id: `profile-${Date.now()}`,
-        lastModified: new Date().toISOString()
+      // Ensure all required sections exist in the imported data
+      const safeData = {
+        personal: {},
+        education: [],
+        experience: [],
+        skills: [],
+        certifications: [],
+        languages: [],
+        projects: [],
+        references: [],
+        coverLetter: {
+          jobDetails: {
+            company: '',
+            position: '',
+            jobDescription: '',
+            requirements: '',
+            hiringManager: ''
+          },
+          content: ''
+        },
+        ...importedData.data // Merge with imported data if it exists
       };
 
+      const profile = {
+        id: `profile-${Date.now()}`,
+        name: importedData.name || 'Imported Profile',
+        lastModified: new Date().toISOString(),
+        data: safeData
+      };
+
+      // Update profiles with the new imported profile
       const newProfiles = [...profiles, profile];
       saveProfiles(newProfiles);
       setCurrentProfileId(profile.id);
       showToast('Profile imported successfully', 'success');
     } catch (error) {
-      showToast('Failed to import profile', 'error');
+      console.error('Import error:', error);
+      showToast('Failed to import profile. Please check the file format.', 'error');
     }
   }, [profiles, saveProfiles, showToast]);
+
+  // Reset current profile to default state
+  const resetCurrentProfile = useCallback(() => {
+    const updatedProfiles = profiles.map(profile =>
+      profile.id === currentProfileId
+        ? {
+            ...profile,
+            lastModified: new Date().toISOString(),
+            data: {
+              personal: {},
+              education: [],
+              experience: [],
+              skills: [],
+              certifications: [],
+              languages: [],
+              projects: [],
+              references: [],
+              coverLetter: {
+                jobDetails: {
+                  company: '',
+                  position: '',
+                  jobDescription: '',
+                  requirements: '',
+                  hiringManager: ''
+                },
+                content: ''
+              }
+            }
+          }
+        : profile
+    );
+    saveProfiles(updatedProfiles);
+    showToast('Profile reset successfully', 'success');
+  }, [currentProfileId, profiles, saveProfiles, showToast]);
 
   const value = {
     profiles,
@@ -175,7 +286,8 @@ export function ResumeProvider({ children }) {
     deleteProfile,
     renameProfile,
     exportProfile,
-    importProfile
+    importProfile,
+    resetCurrentProfile
   };
 
   return (

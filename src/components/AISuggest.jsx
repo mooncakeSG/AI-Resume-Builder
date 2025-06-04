@@ -7,7 +7,7 @@ import {
   generateExperienceAchievements,
   suggestSkills,
   suggestSummary,
-  suggestLinks
+  generateCoverLetter
 } from '../lib/ai/AIService'
 
 const FALLBACK_SUGGESTIONS = {
@@ -76,7 +76,6 @@ const AISuggest = ({ type, data, context, onSuggestionSelect }) => {
             location: suggestionData.location || '',
             professionalLinks: suggestionData.professionalLinks || {}
           });
-          // For summary, pass the string directly
           onSuggestionSelect(result);
           break;
         
@@ -111,7 +110,17 @@ const AISuggest = ({ type, data, context, onSuggestionSelect }) => {
           break;
 
         case 'links':
-          result = await suggestLinks(suggestionData);
+          result = {
+            github: suggestionData.github || '',
+            linkedin: suggestionData.linkedin || '',
+            portfolio: suggestionData.portfolio || '',
+            other: suggestionData.other || ''
+          };
+          onSuggestionSelect(result);
+          break;
+
+        case 'coverletter':
+          result = await generateCoverLetter(suggestionData);
           onSuggestionSelect(result);
           break;
         

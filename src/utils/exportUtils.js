@@ -1,7 +1,7 @@
 import { Document, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, BorderStyle, Packer, WidthType } from 'docx';
 import { saveAs } from 'file-saver';
 import { jsPDF } from 'jspdf';
-import { getTemplateSettings } from '../lib/templates/templateConfig';
+import { getTemplateSettings, getTemplate, TEMPLATE_TYPES } from '../lib/templates/templateConfig';
 
 // Convert resume data to DOCX format
 export const exportToDocx = async (resumeData) => {
@@ -264,54 +264,297 @@ const createHeading = (text, level = HeadingLevel.HEADING_2) => {
 // Export to PDF
 export const exportToPDF = async (resumeData, templateId, type = 'resume') => {
   try {
-    const doc = new jsPDF();
-    const fullName = `${resumeData.personal.firstName} ${resumeData.personal.lastName}`.trim();
-    const fileName = `${fullName.toLowerCase().replace(/\s+/g, '_')}_${type}.pdf`;
+    console.log("Processing resume data:", resumeData);
 
-    // Get template settings
-    const templateSettings = getTemplateSettings(templateId);
-    const { margins, fonts, colors } = templateSettings;
-
-    // Set document properties
-    doc.setProperties({
-      title: `${fullName} - ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      author: fullName,
-      subject: type === 'resume' ? 'Resume' : 'Cover Letter',
-      keywords: 'resume, cv, job application'
+    // Create new PDF document
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
     });
 
-    // Add content based on type
-    if (type === 'resume') {
-      // Header
-      doc.setFontSize(24);
-      doc.setTextColor(colors.primary);
-      doc.text(fullName, margins.left, margins.top);
+    // Set default font
+    doc.setFont('helvetica');
 
-      // Contact Info
-      doc.setFontSize(10);
-      doc.setTextColor(colors.secondary);
-      const contactInfo = [
-        resumeData.personal.email,
-        resumeData.personal.phone,
-        resumeData.personal.location
-      ].filter(Boolean).join(' • ');
-      doc.text(contactInfo, margins.left, margins.top + 10);
+    // Set initial position and constants
+    let yPos = 20;
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const contentWidth = pageWidth - (margin * 2);
 
-      // Professional Links
-      if (resumeData.personal.links) {
-        const links = Object.entries(resumeData.personal.links)
-          .filter(([_, value]) => value)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(' • ');
-        if (links) {
-          doc.text(links, margins.left, margins.top + 15);
-        }
+    // Helper function to ensure text is safe for jsPDF
+    const safeText = (value) => {
+      try {
+        if (value === null || value === undefined) return '';
+        return (typeof value === 'string' || typeof value === 'number') ? String(value).trim() : '';
+      } catch (e) {
+        console.error('Error in safeText:', e);
+        return '';
+      }
+    };
+
+    // Helper function to format dates
+    const formatDate = (date) => {
+      try {
+        if (!date) return '';
+        const d = new Date(date);
+        return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+      } catch (e) {
+        console.error('Error formatting date:', e);
+        return '';
+      }
+    };
+
+    // Helper function to check page break
+    const checkPageBreak = (requiredSpace = 20) => {
+      if (yPos > doc.internal.pageSize.getHeight() - requiredSpace) {
+        console.log("Adding new page at position:", yPos);
+        doc.addPage();
+        yPos = margin;
+        return true;
+      }
+      return false;
+    };
+
+    // Add personal information
+    if (resumeData.personal) {
+      console.log("Adding personal information");
+
+      // Name
+      const name = [
+        safeText(resumeData.personal.firstName),
+        safeText(resumeData.personal.lastName)
+      ].filter(Boolean).join(' ');
+      
+      if (name) {
+        doc.setFontSize(24);
+        doc.setTextColor(0, 0, 0);
+        const nameWidth = doc.getStringUnitWidth(name) * doc.getFontSize() / doc.internal.scaleFactor;
+        const nameX = (pageWidth - nameWidth) / 2;
+        doc.text(name, nameX, yPos);
+        yPos += 10;
       }
 
-      // Rest of the sections...
+      // Contact info
+      const contactInfo = [
+        safeText(resumeData.personal.email),
+        safeText(resumeData.personal.phone),
+        safeText(resumeData.personal.location)
+      ].filter(Boolean);
+      
+      if (contactInfo.length > 0) {
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        const contactText = contactInfo.join(' | ');
+        const contactWidth = doc.getStringUnitWidth(contactText) * doc.getFontSize() / doc.internal.scaleFactor;
+        const contactX = (pageWidth - contactWidth) / 2;
+        doc.text(contactText, contactX, yPos);
+        yPos += 15;
+      }
+
+      // Summary
+      if (resumeData.personal.summary) {
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        const summaryLines = doc.splitTextToSize(safeText(resumeData.personal.summary), contentWidth);
+        summaryLines.forEach(line => {
+          checkPageBreak();
+          doc.text(safeText(line), margin, yPos);
+          yPos += 6;
+        });
+        yPos += 10;
+      }
     }
 
+    // Experience section
+    if (Array.isArray(resumeData.experience) && resumeData.experience.length > 0) {
+      checkPageBreak();
+      
+      // Section header
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Experience', margin, yPos);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      yPos += 10;
+
+      resumeData.experience.forEach(exp => {
+        console.log("Processing experience:", exp);
+        checkPageBreak(40);
+
+        // Company
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(safeText(exp.company), margin, yPos);
+        yPos += 5;
+
+        // Position
+        if (exp.position) {
+          doc.setFontSize(10);
+          doc.setTextColor(60, 60, 60);
+          doc.text(safeText(exp.position), margin, yPos);
+          yPos += 5;
+        }
+
+        // Dates
+        const startDate = safeText(formatDate(exp.startDate));
+        const endDate = safeText(formatDate(exp.endDate)) || 'Present';
+        if (startDate || endDate) {
+          doc.setFontSize(10);
+          doc.setTextColor(60, 60, 60);
+          doc.text(`${startDate} - ${endDate}`, margin, yPos);
+          yPos += 5;
+        }
+
+        // Description
+        if (exp.description) {
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 0);
+          const descLines = doc.splitTextToSize(safeText(exp.description), contentWidth);
+          descLines.forEach(line => {
+            checkPageBreak();
+            doc.text(safeText(line), margin, yPos);
+            yPos += 5;
+          });
+        }
+
+        // Achievements
+        if (Array.isArray(exp.achievements)) {
+          yPos += 3;
+          exp.achievements.forEach(achievement => {
+            if (!achievement) return;
+            checkPageBreak();
+            const achievementLines = doc.splitTextToSize(safeText(achievement), contentWidth - 10);
+            achievementLines.forEach(line => {
+              doc.text(`• ${safeText(line)}`, margin + 5, yPos);
+              yPos += 5;
+            });
+          });
+        }
+
+        yPos += 10;
+      });
+    }
+
+    // Certifications section
+    if (Array.isArray(resumeData.certifications) && resumeData.certifications.length > 0) {
+      checkPageBreak();
+      
+      // Section header
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Certifications', margin, yPos);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      yPos += 10;
+
+      resumeData.certifications.forEach(cert => {
+        console.log("Processing certification:", cert);
+        checkPageBreak(30);
+
+        // Certificate name
+        doc.setFontSize(11);
+        doc.setTextColor(0, 0, 0);
+        doc.text(safeText(cert.name), margin, yPos);
+        yPos += 5;
+
+        // Issuer
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        doc.text(safeText(cert.issuer), margin + 5, yPos);
+        yPos += 5;
+
+        // Dates
+        if (cert.issueDate || cert.expiryDate) {
+          const issued = cert.issueDate ? `Issued: ${safeText(formatDate(cert.issueDate))}` : '';
+          const expires = cert.expiryDate ? ` - Expires: ${safeText(formatDate(cert.expiryDate))}` : '';
+          doc.text(`${issued}${expires}`, margin + 5, yPos);
+          yPos += 5;
+        }
+
+        // Credential ID
+        if (cert.credentialId) {
+          doc.text(`Credential ID: ${safeText(cert.credentialId)}`, margin + 5, yPos);
+          yPos += 5;
+        }
+
+        yPos += 3;
+      });
+    }
+
+    // Education section
+    if (Array.isArray(resumeData.education) && resumeData.education.length > 0) {
+      checkPageBreak();
+      
+      // Section header
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Education', margin, yPos);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      yPos += 10;
+
+      resumeData.education.forEach(edu => {
+        console.log("Processing education:", edu);
+        checkPageBreak(30);
+
+        // School
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text(safeText(edu.school), margin, yPos);
+        yPos += 5;
+
+        // Degree
+        if (edu.degree) {
+          doc.setFontSize(10);
+          doc.setTextColor(60, 60, 60);
+          doc.text(safeText(edu.degree), margin, yPos);
+          yPos += 5;
+        }
+
+        // Dates
+        const startDate = safeText(formatDate(edu.startDate));
+        const endDate = safeText(formatDate(edu.endDate)) || 'Present';
+        if (startDate || endDate) {
+          doc.text(`${startDate} - ${endDate}`, margin, yPos);
+          yPos += 5;
+        }
+
+        yPos += 5;
+      });
+    }
+
+    // Skills section
+    if (Array.isArray(resumeData.skills) && resumeData.skills.length > 0) {
+      checkPageBreak();
+      
+      // Section header
+      doc.setFontSize(14);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Skills', margin, yPos);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+      yPos += 10;
+
+      // Skills list
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+      const skillsText = resumeData.skills.map(skill => safeText(skill)).filter(Boolean).join(' • ');
+      const skillsLines = doc.splitTextToSize(skillsText, contentWidth);
+      skillsLines.forEach(line => {
+        checkPageBreak();
+        doc.text(safeText(line), margin, yPos);
+        yPos += 5;
+      });
+    }
+
+    console.log("PDF generation completed successfully");
+    
     // Save the PDF
+    const fileName = resumeData.personal?.firstName && resumeData.personal?.lastName
+      ? `${safeText(resumeData.personal.firstName).toLowerCase()}_${safeText(resumeData.personal.lastName).toLowerCase()}_${type}.pdf`
+      : `${type}.pdf`;
+    
     doc.save(fileName);
   } catch (error) {
     console.error('Error generating PDF:', error);

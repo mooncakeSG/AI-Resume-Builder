@@ -1,7 +1,7 @@
 import React from 'react';
 
 export const ClassicTemplate = ({ data, settings }) => {
-  const { personal, education, experience, skills, professionalLinks } = data || {};
+  const { personal, education, experience, skills, professionalLinks, certifications, languages, projects } = data || {};
   const { colorScheme, typography, spacing } = settings;
 
   // Helper function to safely get the summary text
@@ -19,16 +19,20 @@ export const ClassicTemplate = ({ data, settings }) => {
 
   return (
     <div 
-      className="classic-template grid grid-cols-3 gap-6 min-h-full"
+      className="classic-template grid grid-cols-3 gap-6 min-h-full print:text-black print:bg-white"
       style={{
         fontFamily: typography.fontFamily,
         color: colorScheme.secondary,
         '--section-gap': spacing.sectionGap,
         '--item-gap': spacing.itemGap,
+        '@media print': {
+          color: '#000',
+          backgroundColor: '#fff'
+        }
       }}
     >
       {/* Left Column */}
-      <div className="col-span-1 bg-gray-50 p-6 flex flex-col">
+      <div className="col-span-1 bg-gray-50 p-6 flex flex-col print:bg-white print:text-black">
         {/* Personal Info */}
         <div className="mb-8">
           <h1 
@@ -70,20 +74,44 @@ export const ClassicTemplate = ({ data, settings }) => {
 
         {/* Skills Section */}
         {skills?.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-3">Skills</h2>
+            <div className="flex flex-wrap gap-2">
+              {skills.map((skill, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm"
+                >
+                  {typeof skill === 'string' ? skill : skill.name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Languages Section */}
+        {languages?.length > 0 && (
           <section className="mb-8">
             <h2 
               className="text-lg font-bold mb-4 pb-2 border-b"
               style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
             >
-              Skills
+              Languages
             </h2>
-            <div className="grid grid-cols-1 gap-2">
-              {skills.map((skill, index) => (
-                <div
-                  key={index}
-                  className="text-sm py-1 px-2 bg-white rounded-md shadow-sm"
-                >
-                  {skill}
+            <div className="space-y-3">
+              {languages.map((lang, index) => (
+                <div key={index} className="text-sm">
+                  <div className="font-medium">{lang.name}</div>
+                  <div className="text-xs mt-1">
+                    <span className="bg-gray-200 px-2 py-0.5 rounded">
+                      {lang.proficiency}
+                    </span>
+                  </div>
+                  {lang.certification && (
+                    <div className="text-xs mt-1 text-gray-600">
+                      {lang.certification}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -193,48 +221,6 @@ export const ClassicTemplate = ({ data, settings }) => {
             </div>
           </section>
         )}
-
-        {/* Education Section */}
-        {education?.length > 0 && (
-          <section className="mb-8">
-            <h2 
-              className="text-lg font-bold mb-4 pb-2 border-b"
-              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
-            >
-              Education
-            </h2>
-            <div className="space-y-4">
-              {education.map((edu, index) => (
-                <div key={index} className="text-sm bg-white p-3 rounded-md shadow-sm">
-                  <h3 className="font-medium" style={{ color: colorScheme.primary }}>
-                    {edu.degree}
-                  </h3>
-                  <div className="text-sm font-medium">{edu.school}</div>
-                  {edu.location && (
-                    <div className="text-sm opacity-75">{edu.location}</div>
-                  )}
-                  <div className="text-sm opacity-75 mt-1">
-                    {edu.startDate && (
-                      <span>
-                        {new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        {' - '}
-                        {edu.current ? 'Present' : edu.endDate ? 
-                          new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                      </span>
-                    )}
-                  </div>
-                  {edu.achievements?.length > 0 && (
-                    <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-                      {edu.achievements.map((achievement, i) => (
-                        <li key={i} className="break-words">{achievement}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
 
       {/* Right Column */}
@@ -291,11 +277,199 @@ export const ClassicTemplate = ({ data, settings }) => {
                     <p className="mb-2 text-sm">{exp.description}</p>
                   )}
                   {exp.achievements?.length > 0 && (
-                    <ul className="list-disc list-inside space-y-1">
-                      {exp.achievements.map((achievement, i) => (
-                        <li key={i} className="text-sm">{achievement}</li>
+                    <div className="mt-2">
+                      <h4 className="text-sm font-medium mb-1" style={{ color: colorScheme.primary }}>Key Achievements:</h4>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        {exp.achievements.map((achievement, i) => (
+                          <li key={i} className="text-sm text-gray-700 dark:text-gray-300">{achievement}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Projects Section */}
+        {projects?.length > 0 && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              Projects
+            </h2>
+            <div className="space-y-4">
+              {projects.map((project, index) => (
+                <div key={index} className="relative">
+                  <div className="flex justify-between items-baseline mb-2">
+                    <h3 className="text-base font-semibold">{project.name}</h3>
+                    <span className="text-sm text-gray-600">
+                      {project.startDate && `${project.startDate}`}
+                      {project.endDate ? ` - ${project.endDate}` : ' - Present'}
+                    </span>
+                  </div>
+                  <p className="text-sm mb-2">{project.description}</p>
+                  {project.technologies?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {project.technologies.map((tech, techIndex) => (
+                        <span
+                          key={techIndex}
+                          className="text-xs px-2 py-0.5 bg-gray-100 rounded"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  {project.achievements?.length > 0 && (
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {project.achievements.map((achievement, achieveIndex) => (
+                        <li key={achieveIndex} className="text-gray-700">{achievement}</li>
                       ))}
                     </ul>
+                  )}
+                  {project.url && (
+                    <a
+                      href={project.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block"
+                    >
+                      View Project →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Education Section */}
+        {education?.length > 0 && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              Education
+            </h2>
+            <div className="space-y-4">
+              {education.map((edu, index) => (
+                <div key={index} className="text-sm bg-white p-3 rounded-md shadow-sm">
+                  <h3 className="font-medium" style={{ color: colorScheme.primary }}>
+                    {edu.degree}
+                  </h3>
+                  <div className="text-sm font-medium">{edu.school}</div>
+                  {edu.location && (
+                    <div className="text-sm opacity-75">{edu.location}</div>
+                  )}
+                  <div className="text-sm opacity-75 mt-1">
+                    {edu.startDate && (
+                      <span>
+                        {new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                        {' - '}
+                        {edu.current ? 'Present' : edu.endDate ? 
+                          new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
+                      </span>
+                    )}
+                  </div>
+                  {edu.achievements?.length > 0 && (
+                    <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                      {edu.achievements.map((achievement, i) => (
+                        <li key={i} className="break-words">{achievement}</li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Certifications Section */}
+        {certifications?.length > 0 && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              Certifications
+            </h2>
+            <div className="space-y-4">
+              {certifications.map((cert, index) => (
+                <div key={index} className="relative">
+                  <div className="flex justify-between items-baseline mb-2">
+                    <h3 className="text-base font-semibold">{cert.name}</h3>
+                    <span className="text-sm text-gray-600">
+                      {cert.issueDate && `Issued: ${cert.issueDate}`}
+                      {cert.expiryDate && ` - Expires: ${cert.expiryDate}`}
+                    </span>
+                  </div>
+                  <div className="text-sm font-medium mb-1">{cert.issuer}</div>
+                  {cert.credentialId && (
+                    <div className="text-xs text-gray-600">
+                      Credential ID: {cert.credentialId}
+                    </div>
+                  )}
+                  {cert.credentialUrl && (
+                    <a
+                      href={cert.credentialUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 mt-1 inline-block"
+                    >
+                      View Credential →
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* References Section */}
+        {data.references?.length > 0 && (
+          <section className="mb-8">
+            <h2 
+              className="text-lg font-bold mb-4 pb-2 border-b"
+              style={{ color: colorScheme.primary, borderColor: colorScheme.accent }}
+            >
+              References
+            </h2>
+            <div className="space-y-6">
+              {data.references.map((reference, index) => (
+                <div key={index} className="text-sm">
+                  <h3 className="font-medium text-base" style={{ color: colorScheme.primary }}>
+                    {reference.name}
+                  </h3>
+                  <div className="font-medium">{reference.position}</div>
+                  <div className="text-sm opacity-75">{reference.company}</div>
+                  {reference.email && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                        <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                      </svg>
+                      <a href={`mailto:${reference.email}`} className="hover:text-blue-600">
+                        {reference.email}
+                      </a>
+                    </div>
+                  )}
+                  {reference.phone && (
+                    <div className="flex items-center gap-2 mt-1">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                      </svg>
+                      <span>{reference.phone}</span>
+                    </div>
+                  )}
+                  {reference.relationship && (
+                    <div className="mt-1 text-sm opacity-75">
+                      Relationship: {reference.relationship}
+                    </div>
                   )}
                 </div>
               ))}

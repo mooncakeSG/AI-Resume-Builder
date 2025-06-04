@@ -2,12 +2,34 @@ import { useState, useEffect } from 'react'
 import AISuggest from './AISuggest'
 
 const Experience = ({ data = [], onChange }) => {
-  const [experienceList, setExperienceList] = useState(data)
+  const [experienceList, setExperienceList] = useState(data.map(exp => ({
+    position: '',
+    company: '',
+    location: '',
+    startDate: '',
+    endDate: '',
+    current: false,
+    description: '',
+    achievements: [],
+    links: {},
+    ...exp
+  })))
   const [errors, setErrors] = useState({})
   const [currentlyEditing, setCurrentlyEditing] = useState(null)
 
   useEffect(() => {
-    setExperienceList(data)
+    setExperienceList(data.map(exp => ({
+      position: '',
+      company: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      current: false,
+      description: '',
+      achievements: [],
+      links: {},
+      ...exp
+    })))
   }, [data])
 
   useEffect(() => {
@@ -20,7 +42,10 @@ const Experience = ({ data = [], onChange }) => {
 
   const handleChange = (index, field, value) => {
     const newList = [...experienceList]
-    newList[index] = { ...newList[index], [field]: value }
+    newList[index] = { 
+      ...newList[index], 
+      [field]: value === undefined ? '' : value 
+    }
     setExperienceList(newList)
     validateField(index, field, value)
   }
@@ -151,6 +176,24 @@ const Experience = ({ data = [], onChange }) => {
     setExperienceList(newList)
   }
 
+  const handleDateChange = (index, field, value) => {
+    const newList = [...experienceList]
+    if (field === 'endDate' && value === 'Present') {
+      newList[index] = {
+        ...newList[index],
+        [field]: '',
+        current: true
+      }
+    } else {
+      newList[index] = {
+        ...newList[index],
+        [field]: value,
+        current: false
+      }
+    }
+    setExperienceList(newList)
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between mb-4">
@@ -254,54 +297,51 @@ const Experience = ({ data = [], onChange }) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label 
-                htmlFor={`startDate-${index}`}
-                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-              >
-                Start Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                id={`startDate-${index}`}
-                name={`startDate-${index}`}
-                type="month"
-                value={experience.startDate || ''}
-                onChange={(e) => handleChange(index, 'startDate', e.target.value)}
-                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${
-                  errors[`${index}-startDate`] ? 'border-red-500' : 'border-gray-200 dark:border-gray-600'
-                } focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200`}
-              />
-              {errors[`${index}-startDate`] && (
-                <p className="text-sm text-red-600 dark:text-red-400">{errors[`${index}-startDate`]}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label 
-                htmlFor={`endDate-${index}`}
-                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
-              >
-                End Date
-              </label>
-              <div className="flex items-center gap-4">
-                <input
-                  id={`endDate-${index}`}
-                  name={`endDate-${index}`}
-                  type="month"
-                  value={experience.endDate || ''}
-                  onChange={(e) => handleChange(index, 'endDate', e.target.value)}
-                  disabled={experience.current}
-                  className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors duration-200 disabled:opacity-50"
-                />
-                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-                  <input
-                    type="checkbox"
-                    checked={experience.current}
-                    onChange={(e) => handleChange(index, 'current', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700"
-                  />
-                  Current
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label 
+                  htmlFor={`startDate-${index}`}
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  Start Date <span className="text-red-500">*</span>
                 </label>
+                <input
+                  id={`startDate-${index}`}
+                  name={`startDate-${index}`}
+                  type="month"
+                  value={experience.startDate || ''}
+                  onChange={(e) => handleDateChange(index, 'startDate', e.target.value)}
+                  className="w-full p-3 border rounded-lg"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label 
+                  htmlFor={`endDate-${index}`}
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                >
+                  End Date
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id={`endDate-${index}`}
+                    name={`endDate-${index}`}
+                    type="month"
+                    value={experience.current ? '' : (experience.endDate || '')}
+                    onChange={(e) => handleDateChange(index, 'endDate', e.target.value)}
+                    className="w-full p-3 border rounded-lg"
+                    disabled={experience.current}
+                  />
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={experience.current || false}
+                      onChange={(e) => handleDateChange(index, 'endDate', e.target.checked ? 'Present' : '')}
+                      className="form-checkbox"
+                    />
+                    <span className="text-sm">Present</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -385,15 +425,6 @@ const Experience = ({ data = [], onChange }) => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
                 Professional Links
               </label>
-              <AISuggest
-                type="links"
-                onSuggestionSelect={(suggestion) => handleLinksSuggestion(index, suggestion)}
-                context={{
-                  position: experience.position,
-                  company: experience.company,
-                  industry: experience.industry
-                }}
-              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

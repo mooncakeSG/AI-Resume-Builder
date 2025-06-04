@@ -151,7 +151,37 @@ Return ONLY the generated summary text, with no additional formatting or explana
     "portfolio": "https://yourusername.github.io",
     "company": "https://www.yourcompany.com"
   }
-}`
+}`,
+
+  COVER_LETTER: `Generate a professional cover letter based on the provided resume and job details. Follow these guidelines:
+
+1. Structure:
+   - Professional greeting using the hiring manager's name if provided
+   - Opening paragraph introducing yourself and stating the position
+   - 2-3 body paragraphs highlighting relevant experience and skills
+   - Closing paragraph expressing interest and call to action
+   - Professional closing
+
+2. Content Integration:
+   - Match resume experience with job requirements
+   - Highlight relevant achievements and skills
+   - Reference company name and position throughout
+   - Demonstrate knowledge of the company/role
+
+3. Style:
+   - Professional and enthusiastic tone
+   - Specific examples and metrics
+   - Clear value proposition
+   - Concise and impactful language
+   - No generic templates
+
+4. Customization:
+   - Address specific job requirements
+   - Connect past experience to future role
+   - Show understanding of company needs
+   - Explain why you're the ideal candidate
+
+Return ONLY the complete cover letter text, properly formatted with paragraphs separated by newlines.`,
 };
 
 const FALLBACK_SUGGESTIONS = {
@@ -948,35 +978,55 @@ function generateFallbackSummary(context) {
 
 // Links suggestion function
 export async function suggestLinks(data) {
-  try {
-    const context = {
-      name: data.name || '',
-      position: data.position || '',
-      company: data.company || '',
-      industry: data.industry || ''
-    };
+  // Return empty object since the feature is not needed
+  return {
+    linkedin: '',
+    github: '',
+    portfolio: '',
+    company: ''
+  };
+}
 
-    const response = await callGroq(PROMPTS.LINKS, JSON.stringify(context));
-    const parsed = safeJSONParse(response);
+export async function generateCoverLetter(data) {
+  try {
+    const { jobDetails, resume } = data || {};
     
-    if (!parsed?.links) {
-      console.error('Invalid links format:', response);
-      return {
-        linkedin: '',
-        github: '',
-        portfolio: '',
-        company: ''
-      };
+    if (!resume) {
+      throw new Error('Resume data is required to generate a cover letter');
     }
     
-    return parsed.links;
-  } catch (error) {
-    console.error('Error suggesting links:', error);
-    return {
-      linkedin: '',
-      github: '',
-      portfolio: '',
-      company: ''
+    // Extract relevant information from resume with default values
+    const {
+      personal = {},
+      experience = [],
+      education = [],
+      skills = []
+    } = resume;
+
+    // Format the input for the AI
+    const input = {
+      position: jobDetails?.position || '',
+      company: jobDetails?.company || '',
+      hiringManager: jobDetails?.hiringManager || '',
+      jobDescription: jobDetails?.jobDescription || '',
+      requirements: jobDetails?.requirements || '',
+      candidateName: `${personal?.firstName || ''} ${personal?.lastName || ''}`.trim(),
+      candidateExperience: (experience || []).map(exp => ({
+        position: exp?.position || '',
+        company: exp?.company || '',
+        description: exp?.description || '',
+        achievements: exp?.achievements || []
+      })),
+      candidateEducation: education || [],
+      candidateSkills: skills || [],
+      candidateSummary: personal?.summary || ''
     };
+
+    // Generate the cover letter
+    const coverLetter = await callGroq(PROMPTS.COVER_LETTER, JSON.stringify(input));
+    return coverLetter;
+  } catch (error) {
+    console.error('Error generating cover letter:', error);
+    throw error;
   }
 } 

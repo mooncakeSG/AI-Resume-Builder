@@ -1,5 +1,6 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
+import { getTemplate } from '../templates/templateConfig';
 
 // A4 dimensions in mm
 const A4_DIMENSIONS = {
@@ -15,80 +16,292 @@ const MARGINS = {
   RIGHT: 10,
 };
 
-export async function generatePDF(element) {
+export async function generatePDF(data, templateId, type = 'resume') {
   try {
-    // Calculate pixel ratio for better quality
-    const pixelRatio = window.devicePixelRatio || 1;
-    
-    // Calculate content width in pixels (1mm = 3.78px approximately)
-    const contentWidthPx = (A4_DIMENSIONS.WIDTH - (MARGINS.LEFT + MARGINS.RIGHT)) * 3.78;
-    const contentHeightPx = (A4_DIMENSIONS.HEIGHT - (MARGINS.TOP + MARGINS.BOTTOM)) * 3.78;
+    // Get template settings
+    const template = getTemplate(templateId);
+    const settings = template.settings;
 
-    // Set temporary styles for capturing
-    const originalStyle = element.style.cssText;
-    element.style.width = `${contentWidthPx}px`;
-    element.style.height = 'auto';
-    element.style.margin = '0';
-    element.style.padding = '0';
-    element.style.transform = 'scale(1)';
-    element.style.transformOrigin = 'top left';
-
-    // Configure html2canvas
-    const canvas = await html2canvas(element, {
-      scale: pixelRatio, // Use device pixel ratio
-      useCORS: true,
-      allowTaint: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: contentWidthPx,
-      height: Math.max(contentHeightPx, element.offsetHeight * pixelRatio),
-      windowWidth: contentWidthPx,
-      windowHeight: contentHeightPx,
-      onclone: (clonedDoc) => {
-        const style = clonedDoc.createElement('style');
-        style.innerHTML = `
-          @page { size: A4; margin: 0; }
-          * { 
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            font-family: inherit !important;
-          }
-          body { margin: 0; padding: 0; }
-          .print-area {
-            width: ${contentWidthPx}px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            transform: none !important;
-          }
-        `;
-        clonedDoc.head.appendChild(style);
-      }
-    });
-
-    // Create PDF with A4 dimensions
-    const pdf = new jsPDF({
-      format: 'a4',
-      unit: 'mm',
+    // Create new PDF document
+    const doc = new jsPDF({
       orientation: 'portrait',
-      hotfixes: ['px_scaling']
+      unit: 'mm',
+      format: 'a4'
     });
 
-    // Add the image with proper scaling
-    pdf.addImage(
-      canvas.toDataURL('image/png', 1.0),
-      'PNG',
-      MARGINS.LEFT,
-      MARGINS.TOP,
-      A4_DIMENSIONS.WIDTH - (MARGINS.LEFT + MARGINS.RIGHT),
-      (canvas.height * (A4_DIMENSIONS.WIDTH - (MARGINS.LEFT + MARGINS.RIGHT))) / canvas.width
-    );
+    // Set default font
+    doc.setFont('helvetica');
+    
+    // Define colors from template settings
+    const colors = {
+      primary: settings.colorScheme.primary || '#2563eb',
+      secondary: settings.colorScheme.secondary || '#4b5563',
+      accent: settings.colorScheme.accent || '#60a5fa'
+    };
 
-    // Restore original element style
-    element.style.cssText = originalStyle;
+    // Set initial position
+    let yPos = 20;
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.width;
+    const contentWidth = pageWidth - (margin * 2);
 
-    return pdf;
+    if (type === 'coverLetter') {
+      // Add personal information
+      if (data.personal) {
+        // Name
+        doc.setFontSize(24);
+        doc.setTextColor(colors.primary);
+        const name = `${data.personal.firstName || ''} ${data.personal.lastName || ''}`.trim();
+        if (name) {
+          doc.text(name, pageWidth / 2, yPos, { align: 'center' });
+          yPos += 10;
+        }
+
+        // Contact info
+        doc.setFontSize(10);
+        doc.setTextColor(colors.secondary);
+        const contactInfo = [];
+        if (data.personal.email) contactInfo.push(data.personal.email);
+        if (data.personal.phone) contactInfo.push(data.personal.phone);
+        if (data.personal.location) contactInfo.push(data.personal.location);
+        
+        if (contactInfo.length > 0) {
+          doc.text(contactInfo.join(' | '), pageWidth / 2, yPos, { align: 'center' });
+          yPos += 20;
+        }
+      }
+
+      // Add cover letter content
+      if (data.coverLetter) {
+        // Date
+        doc.setFontSize(11);
+        doc.setTextColor(colors.secondary);
+        if (data.coverLetter.letterDate) {
+          doc.text(new Date(data.coverLetter.letterDate).toLocaleDateString(), margin, yPos);
+          yPos += 10;
+        }
+
+        // Recipient info
+        if (data.coverLetter.recipientName || data.coverLetter.recipientTitle || data.coverLetter.companyName || data.coverLetter.companyAddress) {
+          doc.setFontSize(11);
+          doc.setTextColor(colors.secondary);
+          
+          if (data.coverLetter.recipientName) {
+            doc.text(data.coverLetter.recipientName, margin, yPos);
+            yPos += 5;
+          }
+          if (data.coverLetter.recipientTitle) {
+            doc.text(data.coverLetter.recipientTitle, margin, yPos);
+            yPos += 5;
+          }
+          if (data.coverLetter.companyName) {
+            doc.text(data.coverLetter.companyName, margin, yPos);
+            yPos += 5;
+          }
+          if (data.coverLetter.companyAddress) {
+            const addressLines = data.coverLetter.companyAddress.split('\n');
+            addressLines.forEach(line => {
+              doc.text(line.trim(), margin, yPos);
+              yPos += 5;
+            });
+          }
+          yPos += 10;
+        }
+
+        // Greeting
+        doc.setFontSize(11);
+        doc.setTextColor(colors.secondary);
+        doc.text(data.coverLetter.greeting || 'Dear Hiring Manager,', margin, yPos);
+        yPos += 10;
+
+        // Content
+        if (data.coverLetter.content) {
+          doc.setFontSize(11);
+          doc.setTextColor(colors.secondary);
+          const contentLines = doc.splitTextToSize(data.coverLetter.content, contentWidth);
+          contentLines.forEach(line => {
+            if (yPos > doc.internal.pageSize.height - 40) {
+              doc.addPage();
+              yPos = 20;
+            }
+            doc.text(line, margin, yPos);
+            yPos += 6;
+          });
+          yPos += 10;
+        }
+
+        // Closing
+        doc.setFontSize(11);
+        doc.setTextColor(colors.secondary);
+        doc.text(data.coverLetter.closing || 'Sincerely,', margin, yPos);
+        yPos += 15;
+
+        // Signature
+        if (data.personal) {
+          const signature = `${data.personal.firstName || ''} ${data.personal.lastName || ''}`.trim();
+          if (signature) {
+            doc.text(signature, margin, yPos);
+          }
+        }
+      }
+    } else {
+      // Resume content
+      // Add personal information
+      if (data.personal) {
+        // Name
+        doc.setFontSize(24);
+        doc.setTextColor(colors.primary);
+        const name = `${data.personal.firstName || ''} ${data.personal.lastName || ''}`.trim();
+        if (name) {
+          doc.text(name, pageWidth / 2, yPos, { align: 'center' });
+          yPos += 10;
+        }
+
+        // Contact info
+        doc.setFontSize(10);
+        doc.setTextColor(colors.secondary);
+        const contactInfo = [];
+        if (data.personal.email) contactInfo.push(data.personal.email);
+        if (data.personal.phone) contactInfo.push(data.personal.phone);
+        if (data.personal.location) contactInfo.push(data.personal.location);
+        
+        if (contactInfo.length > 0) {
+          doc.text(contactInfo.join(' | '), pageWidth / 2, yPos, { align: 'center' });
+          yPos += 15;
+        }
+
+        // Summary
+        if (data.personal.summary) {
+          yPos = addSection(doc, 'Professional Summary', yPos, colors, margin, contentWidth);
+          const summaryLines = doc.splitTextToSize(data.personal.summary, contentWidth);
+          summaryLines.forEach(line => {
+            doc.text(line, margin, yPos);
+            yPos += 6;
+          });
+          yPos += 10;
+        }
+      }
+
+      // Experience section
+      if (data.experience?.length > 0) {
+        yPos = addSection(doc, 'Experience', yPos, colors, margin, contentWidth);
+        
+        data.experience.forEach((exp) => {
+          if (yPos > doc.internal.pageSize.height - 40) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setTextColor(colors.primary);
+          doc.text(exp.company || '', margin, yPos);
+          
+          doc.setFontSize(10);
+          doc.setTextColor(colors.secondary);
+          if (exp.position) {
+            doc.text(exp.position, margin, yPos + 5);
+          }
+          
+          yPos += 15;
+          
+          if (exp.description) {
+            doc.setFontSize(10);
+            doc.setTextColor(colors.secondary);
+            const lines = doc.splitTextToSize(exp.description, contentWidth);
+            doc.text(lines, margin, yPos);
+            yPos += (lines.length * 5) + 5;
+          }
+
+          if (exp.achievements?.length > 0) {
+            exp.achievements.forEach(achievement => {
+              if (yPos > doc.internal.pageSize.height - 40) {
+                doc.addPage();
+                yPos = 20;
+              }
+              const lines = doc.splitTextToSize(`• ${achievement}`, contentWidth - 5);
+              doc.text(lines, margin + 5, yPos);
+              yPos += (lines.length * 5) + 2;
+            });
+          }
+
+          yPos += 10;
+        });
+      }
+
+      // Education section
+      if (data.education?.length > 0) {
+        yPos = addSection(doc, 'Education', yPos, colors, margin, contentWidth);
+        
+        data.education.forEach((edu) => {
+          if (yPos > doc.internal.pageSize.height - 40) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(12);
+          doc.setTextColor(colors.primary);
+          doc.text(edu.school || '', margin, yPos);
+          
+          doc.setFontSize(10);
+          doc.setTextColor(colors.secondary);
+          if (edu.degree) {
+            doc.text(edu.degree, margin, yPos + 5);
+          }
+          
+          yPos += 15;
+          
+          if (edu.description) {
+            const lines = doc.splitTextToSize(edu.description, contentWidth);
+            doc.text(lines, margin, yPos);
+            yPos += (lines.length * 5) + 5;
+          }
+
+          yPos += 5;
+        });
+      }
+
+      // Skills section
+      if (data.skills?.length > 0) {
+        yPos = addSection(doc, 'Skills', yPos, colors, margin, contentWidth);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(colors.secondary);
+        const skillsText = data.skills.join(', ');
+        const lines = doc.splitTextToSize(skillsText, contentWidth);
+        doc.text(lines, margin, yPos);
+        yPos += (lines.length * 5) + 10;
+      }
+    }
+
+    // Save the PDF
+    const fileName = data.personal?.firstName && data.personal?.lastName
+      ? `${data.personal.firstName.toLowerCase()}_${data.personal.lastName.toLowerCase()}_${type}.pdf`
+      : `${type}.pdf`;
+    
+    doc.save(fileName);
   } catch (error) {
     console.error('Error generating PDF:', error);
     throw error;
   }
+}
+
+// Helper function to add a section header
+function addSection(doc, title, yPos, colors, margin, contentWidth) {
+  // Add page break if needed
+  if (yPos > doc.internal.pageSize.height - 40) {
+    doc.addPage();
+    yPos = 20;
+  }
+
+  doc.setFontSize(14);
+  doc.setTextColor(colors.primary);
+  doc.text(title, margin, yPos);
+  
+  // Add underline
+  const titleWidth = doc.getTextWidth(title);
+  doc.setDrawColor(colors.accent);
+  doc.setLineWidth(0.5);
+  doc.line(margin, yPos + 1, margin + titleWidth, yPos + 1);
+  
+  return yPos + 10;
 } 

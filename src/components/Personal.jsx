@@ -100,16 +100,6 @@ const Personal = ({ data, onChange }) => {
     }
   }
 
-  const handleLinksUpdate = (suggestion) => {
-    setPersonalDetails(prev => ({
-      ...prev,
-      professionalLinks: {
-        ...prev.professionalLinks,
-        ...suggestion
-      }
-    }))
-  }
-
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="mb-4">
@@ -266,15 +256,10 @@ const Personal = ({ data, onChange }) => {
       </div>
 
       <div className="mt-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div>
           <label className="block text-sm font-medium text-gray-700">
             Professional Links
           </label>
-          <AISuggest
-            type="links"
-            onSuggestionSelect={handleLinksUpdate}
-            context={personalDetails}
-          />
         </div>
 
         <div className="space-y-4">

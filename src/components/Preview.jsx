@@ -1,10 +1,10 @@
-import { useRef, useState, memo, useEffect } from 'react'
+import { useRef, useState, memo, useEffect, useCallback } from 'react'
 import { useToast } from './ui/ToastProvider'
 import TemplateManager from '../lib/templates/TemplateManager'
-import { generatePDF } from '../lib/utils/pdfGenerator'
-import ExportButton from './ExportButton'
-import { ZoomIn, ZoomOut, Maximize2, Printer, Download } from 'lucide-react'
+import { generatePDF, exportToDocx, exportToHTML } from '../lib/utils/exportUtils'
+import { ZoomIn, ZoomOut, Maximize2, Printer, Download, FileText, Code } from 'lucide-react'
 import { Button } from './ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
 
 // A4 dimensions in mm
 const A4_DIMENSIONS = {
@@ -20,17 +20,31 @@ const MARGINS = {
   RIGHT: 10,
 };
 
-const Preview = memo(({ data, templateId }) => {
+const Preview = memo(({ data, templateId, type = 'resume' }) => {
   const previewRef = useRef(null)
   const previewAreaRef = useRef(null)
   const { showToast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [viewMode, setViewMode] = useState('resume')
   const [scale, setScale] = useState(1)
   const [isDragging, setIsDragging] = useState(false)
   const [startPos, setStartPos] = useState({ x: 0, y: 0 })
   const [scrollPos, setScrollPos] = useState({ x: 0, y: 0 })
   const [showControls, setShowControls] = useState(true)
+
+  const resetZoom = useCallback(() => setScale(1), []);
+
+  // Add keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r') {
+        e.preventDefault(); // Prevent browser refresh
+        resetZoom();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [resetZoom]);
 
   // Set initial scale based on screen width and maintain aspect ratio
   useEffect(() => {
@@ -126,181 +140,198 @@ const Preview = memo(({ data, templateId }) => {
   }, [scale, isDragging, startPos, scrollPos, showControls]);
 
   const handlePrint = () => {
-    window.print();
-  };
-
-  const handleZoom = (direction) => {
-    setScale(prev => {
-      const newScale = direction === 'in' ? prev + 0.1 : prev - 0.1;
-      return Math.min(Math.max(newScale, 0.5), 2);
-    });
-  };
-
-  const resetZoom = () => setScale(1);
-
-  const downloadPDF = async () => {
-    if (!previewRef.current) {
-      showToast('Preview element not found', 'error');
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      showToast('Please allow pop-ups to print', 'error');
       return;
     }
 
+    // Get the content to print
+    const contentToPrint = previewRef.current.querySelector('.print-area');
+    if (!contentToPrint) {
+      printWindow.close();
+      showToast('No content to print', 'error');
+      return;
+    }
+
+    // Write the print document
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Print ${type === 'coverLetter' ? 'Cover Letter' : 'Resume'}</title>
+          <style>
+            @page {
+              size: A4;
+              margin: 0;
+            }
+            body {
+              margin: 0;
+              padding: 0;
+              background: white;
+              font-family: system-ui, -apple-system, sans-serif;
+            }
+            .print-container {
+              width: 210mm;
+              min-height: 297mm;
+              padding: 20mm;
+              margin: 0 auto;
+              background: white;
+              box-sizing: border-box;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            @media print {
+              html, body {
+                width: 210mm;
+                height: 297mm;
+              }
+              .print-container {
+                page-break-after: always;
+              }
+            }
+            ${Array.from(document.styleSheets)
+              .filter(sheet => !sheet.href || sheet.href.startsWith(window.location.origin))
+              .map(sheet => {
+                try {
+                  return Array.from(sheet.cssRules)
+                    .map(rule => rule.cssText)
+                    .join('\n');
+                } catch (e) {
+                  return '';
+                }
+              })
+              .join('\n')}
+          </style>
+        </head>
+        <body>
+          <div class="print-container">
+            ${contentToPrint.outerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+
+    // Wait for resources to load and print
+    printWindow.document.close();
+    printWindow.addEventListener('load', () => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    });
+  };
+
+  const handleZoom = (direction) => {
+    const zoomFactor = direction === 'in' ? 0.1 : -0.1;
+    const newScale = Math.min(Math.max(scale + zoomFactor, 0.5), 2);
+    setScale(newScale);
+  };
+
+  const downloadPDF = async () => {
     try {
       setIsLoading(true);
-      const templateElement = previewRef.current.querySelector('.print-area');
-      if (!templateElement) {
-        throw new Error('Template element not found');
-      }
-      const pdf = await generatePDF(templateElement);
-      const fileName = data.personal?.firstName && data.personal?.lastName
-        ? `${data.personal.firstName.toLowerCase()}_${data.personal.lastName.toLowerCase()}_${viewMode}.pdf`
-        : `${viewMode}.pdf`;
-      pdf.save(fileName);
+      await generatePDF(data, templateId, type);
       showToast('PDF downloaded successfully!', 'success');
     } catch (error) {
-      console.error('PDF generation error:', error);
+      console.error('Error generating PDF:', error);
       showToast('Failed to generate PDF. Please try again.', 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!data || !data.personal) {
-    return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4">
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          No resume data available. Start filling out the form to see the preview.
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-background dark:bg-gray-900 rounded-lg overflow-hidden relative flex flex-col h-[100dvh]" ref={previewRef}>
-      {/* Top Controls */}
-      <div className="bg-background dark:bg-gray-800 border-b dark:border-gray-700 p-4 flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex items-center gap-2">
+    <div className="relative h-full" ref={previewRef}>
+      {showControls && (
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2 p-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-lg rounded-lg border dark:border-gray-700">
           <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePrint}
-            className="h-9 text-gray-700 dark:text-gray-200"
+            variant="ghost"
+            size="icon"
+            onClick={() => handleZoom('in')}
+            title="Zoom In"
+            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
           >
-            <Printer className="h-4 w-4 mr-2" />
-            Print
+            <ZoomIn className="h-4 w-4" />
           </Button>
-          <ExportButton
-            resumeData={data}
-            templateId={templateId}
-            documentType={viewMode}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="flex rounded-md shadow-sm">
-            <Button
-              variant={viewMode === 'resume' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('resume')}
-              className={`rounded-r-none h-9 ${
-                viewMode !== 'resume' ? 'text-gray-700 dark:text-gray-200' : ''
-              }`}
-            >
-              Resume
-            </Button>
-            <Button
-              variant={viewMode === 'coverLetter' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('coverLetter')}
-              className={`rounded-l-none h-9 ${
-                viewMode !== 'coverLetter' ? 'text-gray-700 dark:text-gray-200' : ''
-              }`}
-            >
-              Cover Letter
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Preview Area */}
-      <div
-        ref={previewAreaRef}
-        className="flex-1 overflow-auto touch-pan-x touch-pan-y bg-gray-100 dark:bg-gray-900 flex items-start justify-center p-6 print:p-0"
-        style={{
-          touchAction: 'none',
-          height: 'calc(100dvh - 140px)',
-          minWidth: '100%',
-        }}
-      >
-        <div className="preview-wrapper w-full max-w-4xl print:w-full print:max-w-[794px] print:mx-auto">
-          <div
-            className="print-area relative bg-white dark:bg-gray-800 rounded-xl shadow-md print:shadow-none print:border print:border-gray-300 mx-auto"
-            style={{
-              transform: `scale(${scale})`,
-              transformOrigin: 'center top',
-              width: `${A4_DIMENSIONS.WIDTH}mm`,
-              minHeight: `${A4_DIMENSIONS.HEIGHT}mm`,
-              height: 'auto',
-              padding: `${MARGINS.TOP}mm ${MARGINS.RIGHT}mm ${MARGINS.BOTTOM}mm ${MARGINS.LEFT}mm`,
-              maxWidth: '100%',
-              overflowX: 'visible',
-              overflowY: 'visible'
-            }}
-          >
-            <TemplateManager 
-              data={{
-                personal: data.personal || {},
-                experience: data.experience || [],
-                education: data.education || [],
-                skills: data.skills || [],
-                references: data.references || [],
-                professionalLinks: data.personal?.links || {}
-              }}
-              type={viewMode}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Controls */}
-      <div className={`fixed bottom-0 left-0 right-0 bg-background/95 dark:bg-gray-800/95 backdrop-blur-sm border-t p-2 transition-transform duration-300 ${
-        showControls ? 'translate-y-0' : 'translate-y-full'
-      } z-10`}>
-        <div className="flex items-center justify-center gap-1">
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={() => handleZoom('out')}
-            disabled={scale <= 0.5}
-            className="h-8 w-8"
+            title="Zoom Out"
+            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            size="icon"
             onClick={resetZoom}
-            className="h-8 w-8"
+            title="Reset Zoom (Ctrl/Cmd + R)"
+            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
+          <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleZoom('in')}
-            disabled={scale >= 2}
-            className="h-8 w-8"
+            variant="ghost"
+            size="icon"
+            onClick={handlePrint}
+            title="Print"
+            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
           >
-            <ZoomIn className="h-4 w-4" />
+            <Printer className="h-4 w-4" />
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                disabled={isLoading}
+                title="Export"
+                className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="dark:bg-gray-900 dark:border-gray-700">
+              <DropdownMenuItem onClick={downloadPDF} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
+                <Download className="h-4 w-4 mr-2" />
+                Export as PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportToDocx(data, templateId, type)} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
+                <FileText className="h-4 w-4 mr-2" />
+                Export as DOCX
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportToHTML(data, templateId, type)} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
+                <Code className="h-4 w-4 mr-2" />
+                Export as HTML
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-      </div>
-
-      {/* Mobile hint */}
-      <div 
-        className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-black/75 text-white px-4 py-2 rounded-full text-xs pointer-events-none transition-opacity duration-300 md:hidden"
-        style={{ opacity: isDragging ? 0 : 0.8 }}
+      )}
+      
+      <div
+        ref={previewAreaRef}
+        className="h-full overflow-auto bg-gray-100 dark:bg-gray-800 rounded-lg p-4"
+        style={{
+          cursor: isDragging ? 'grabbing' : 'grab'
+        }}
       >
-        Double tap to toggle controls
+        <div
+          className="print-area w-[210mm] min-h-[297mm] bg-white mx-auto shadow-lg transform-gpu"
+          style={{
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            padding: `${MARGINS.TOP}mm ${MARGINS.RIGHT}mm ${MARGINS.BOTTOM}mm ${MARGINS.LEFT}mm`,
+          }}
+        >
+          <TemplateManager data={data} type={type} />
+        </div>
       </div>
     </div>
   );
@@ -308,4 +339,4 @@ const Preview = memo(({ data, templateId }) => {
 
 Preview.displayName = 'Preview';
 
-export default Preview; 
+export default Preview;

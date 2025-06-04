@@ -1,7 +1,7 @@
 import React from 'react';
 
 const ProfessionalTemplate = ({ data, settings }) => {
-  const { personal, experience, education, skills, professionalLinks } = data || {};
+  const { personal, experience, education, skills, professionalLinks, certifications, languages, projects } = data || {};
   const fullName = personal ? `${personal.firstName} ${personal.lastName}` : '';
 
   return (
@@ -152,7 +152,7 @@ const ProfessionalTemplate = ({ data, settings }) => {
       )}
 
       {skills?.length > 0 && (
-        <section>
+        <section className="mb-6">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Skills</h2>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill, index) => (
@@ -160,10 +160,111 @@ const ProfessionalTemplate = ({ data, settings }) => {
                 key={index}
                 className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm"
               >
-                {skill}
+                {typeof skill === 'string' ? skill : skill.name}
               </span>
             ))}
           </div>
+        </section>
+      )}
+
+      {languages?.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Languages</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {languages.map((lang, index) => (
+              <div key={index} className="bg-gray-50 p-3 rounded">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium text-gray-800">{lang.name}</span>
+                  <span className="text-sm text-gray-600">{lang.proficiency}</span>
+                </div>
+                {lang.certification && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    {lang.certification}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {certifications?.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Certifications</h2>
+          {certifications.map((cert, index) => (
+            <div key={index} className="mb-4">
+              <div className="flex justify-between items-baseline">
+                <h3 className="text-lg font-medium text-gray-800">{cert.name}</h3>
+                <span className="text-gray-600 text-sm">
+                  {cert.issueDate && `Issued: ${cert.issueDate}`}
+                  {cert.expiryDate && ` - Expires: ${cert.expiryDate}`}
+                </span>
+              </div>
+              <div className="text-gray-700 font-medium">{cert.issuer}</div>
+              {cert.credentialId && (
+                <div className="text-gray-600 text-sm mt-1">
+                  Credential ID: {cert.credentialId}
+                </div>
+              )}
+              {cert.credentialUrl && (
+                <a
+                  href={cert.credentialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-sm mt-1 inline-block"
+                >
+                  View Credential →
+                </a>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {projects?.length > 0 && (
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Projects</h2>
+          {projects.map((project, index) => (
+            <div key={index} className="mb-4">
+              <div className="flex justify-between items-baseline">
+                <h3 className="text-lg font-medium text-gray-800">{project.name}</h3>
+                <span className="text-gray-600 text-sm">
+                  {project.startDate && `${project.startDate}`}
+                  {project.endDate ? ` - ${project.endDate}` : ' - Present'}
+                </span>
+              </div>
+              <p className="text-gray-600 mt-1">{project.description}</p>
+              {project.technologies?.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {project.technologies.map((tech, techIndex) => (
+                    <span
+                      key={techIndex}
+                      className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-sm"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {project.achievements?.length > 0 && (
+                <ul className="list-disc list-inside mt-2">
+                  {project.achievements.map((achievement, achieveIndex) => (
+                    <li key={achieveIndex} className="text-gray-600">{achievement}</li>
+                  ))}
+                </ul>
+              )}
+              {project.url && (
+                <a
+                  href={project.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 text-sm mt-2 inline-block"
+                >
+                  View Project →
+                </a>
+              )}
+            </div>
+          ))}
         </section>
       )}
 

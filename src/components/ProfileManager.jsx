@@ -3,7 +3,7 @@ import { useResume } from '../lib/data/ResumeContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { Import, Plus, ArrowRightLeft, Edit2, Download, Trash2 } from 'lucide-react';
+import { Import, Plus, ArrowRightLeft, Edit2, Download, Trash2, RotateCcw } from 'lucide-react';
 
 export default function ProfileManager() {
   const {
@@ -14,7 +14,8 @@ export default function ProfileManager() {
     deleteProfile,
     renameProfile,
     exportProfile,
-    importProfile
+    importProfile,
+    resetCurrentProfile
   } = useResume();
 
   const [isCreating, setIsCreating] = useState(false);
@@ -60,13 +61,40 @@ export default function ProfileManager() {
     reader.onload = (event) => {
       try {
         const importedData = JSON.parse(event.target.result);
-        importProfile(importedData);
+        
+        // Validate the imported data structure
+        if (!importedData || typeof importedData !== 'object') {
+          throw new Error('Invalid file format: Expected an object');
+        }
+
+        // Check if it's a profile export or just resume data
+        const dataToImport = importedData.data ? importedData : { data: importedData };
+
+        // Validate required sections exist
+        const requiredSections = ['personal', 'education', 'experience', 'skills'];
+        const missingRequiredSections = requiredSections.filter(section => 
+          !dataToImport.data || !dataToImport.data[section]
+        );
+
+        if (missingRequiredSections.length > 0) {
+          throw new Error(`Missing required sections: ${missingRequiredSections.join(', ')}`);
+        }
+
+        // Import the profile
+        importProfile(dataToImport);
       } catch (error) {
         console.error('Failed to parse imported file:', error);
+        alert(`Import failed: ${error.message || 'Invalid file format'}`);
       }
     };
     reader.readAsText(file);
     e.target.value = null; // Reset file input
+  };
+
+  const handleReset = (profileId) => {
+    if (window.confirm('Are you sure you want to reset this profile? This will clear all data and cannot be undone.')) {
+      resetCurrentProfile();
+    }
   };
 
   return (
@@ -183,6 +211,17 @@ export default function ProfileManager() {
                       >
                         <ArrowRightLeft className="h-4 w-4 mr-2" />
                         Switch
+                      </Button>
+                    )}
+                    {profile.id === currentProfileId && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleReset(profile.id)}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Reset
                       </Button>
                     )}
                     <Button
