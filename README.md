@@ -213,13 +213,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - 📚 [Documentation](docs/)
 - 🐛 [Issue Tracker](issues)
-- 💬 [Discord Community](https://discord.gg/yourdiscord)
+- 💬 [Discord Community](https://discord.gg/mooncakesg4027)
 - 📧 support@airesume.example.com
 
 ---
 
 <div align="center">
-Made with ❤️ by the AI Resume Builder Team
+Made with ❤️ by the Keawin Koesnel
 </div>
 
 ## 🌟 Features
@@ -227,7 +227,7 @@ Made with ❤️ by the AI Resume Builder Team
 - **AI-Powered Content Generation**: Smart suggestions for professional summaries, achievements, and skills
 - **Multiple Templates**: Choose from Modern, Minimal, Professional, and Classic designs
 - **ATS Optimization**: Built-in ATS compatibility checker and keyword optimization
-- **Export Options**: Download in PDF, DOCX, or HTML formats
+- **Export Options**: Download in PDF(us the print function), DOCX, or HTML formats
 - **Real-time Preview**: See changes as you type
 - **Job Matching**: Compare your resume against job descriptions
 - **Local Storage**: Auto-save and version history
