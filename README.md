@@ -214,8 +214,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📚 [Documentation](docs/)
 - 🐛 [Issue Tracker](issues)
 - 💬 [Discord Community](https://discord.gg/mooncakesg4027)
-- 📧 support@airesume.example.com
-
 ---
 
 <div align="center">
