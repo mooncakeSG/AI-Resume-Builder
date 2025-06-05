@@ -37,7 +37,7 @@ This document showcases various templates and content examples from the AI Resum
 - ATS-heavy applications
 
 ### 3. Professional Template
-![Professional Template Example](screenshots/professional-template.png)
+![Professional Template Example](https://i.ibb.co/qLk1pggy/Screenshot-2025-06-05-101816.png)
 
 **Key Features:**
 - Traditional two-column layout
@@ -52,8 +52,8 @@ This document showcases various templates and content examples from the AI Resum
 - Consulting jobs
 - Financial sector
 
-### 4. Creative Template
-![Creative Template Example](screenshots/creative-template.png)
+### 4. Classic Template
+![Creative Template Example](https://i.ibb.co/bgV3y6WP/Screenshot-2025-06-05-101843.png)
 
 **Key Features:**
 - Dynamic color gradients
