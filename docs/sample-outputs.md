@@ -21,7 +21,7 @@ This document showcases various templates and content examples from the AI Resum
 - Modern companies
 
 ### 2. Minimal Template
-![Minimal Template Example](screenshots/minimal-template.png)
+![Minimal Template Example](https://i.ibb.co/9ky16WMd/Screenshot-2025-06-05-101655.png)
 
 **Key Features:**
 - Content-first approach
