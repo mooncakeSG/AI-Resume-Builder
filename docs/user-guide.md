@@ -111,7 +111,7 @@
 ## Export Options
 
 ### 1. PDF Export
-- Click "Export as PDF"
+- Click print "Save as PDF"
 - Choose quality settings
 - Review preview
 - Download file
