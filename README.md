@@ -212,7 +212,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - 📚 [Documentation](docs/)
-- 🐛 [Issue Tracker](issues)
+- 🐛 [Issue Tracker](https://github.com/mooncakeSG/AI-Resume-Builder/issues/1#issue-3120302887)
 - 💬 [Discord Community](https://discord.gg/mooncakesg4027)
 ---
 
