@@ -5,7 +5,7 @@ This document showcases various templates and content examples from the AI Resum
 ## Template Variety
 
 ### 1. Modern Template
-![Modern Template Example](Screenshot 2025-06-05 101047.png)
+![Modern Template Example](https://i.ibb.co/6RMt8mCT/Screenshot-2025-06-05-101047.png)
 
 **Key Features:**
 - Clean, grid-based layout
