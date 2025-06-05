@@ -1,7 +1,7 @@
 import { useRef, useState, memo, useEffect, useCallback } from 'react'
 import { useToast } from './ui/ToastProvider'
 import TemplateManager from '../lib/templates/TemplateManager'
-import { generatePDF, exportToDocx, exportToHTML } from '../lib/utils/exportUtils'
+import { exportToDocx, exportToHTML } from '../lib/utils/exportUtils'
 import { ZoomIn, ZoomOut, Maximize2, Printer, Download, FileText, Code } from 'lucide-react'
 import { Button } from './ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu'
@@ -231,19 +231,6 @@ const Preview = memo(({ data, templateId, type = 'resume' }) => {
     setScale(newScale);
   };
 
-  const downloadPDF = async () => {
-    try {
-      setIsLoading(true);
-      await generatePDF(data, templateId, type);
-      showToast('PDF downloaded successfully!', 'success');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      showToast('Failed to generate PDF. Please try again.', 'error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="relative h-full" ref={previewRef}>
       {showControls && (
@@ -252,8 +239,7 @@ const Preview = memo(({ data, templateId, type = 'resume' }) => {
             variant="ghost"
             size="icon"
             onClick={() => handleZoom('in')}
-            title="Zoom In"
-            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+            title="Zoom In (Ctrl/Cmd +)"
           >
             <ZoomIn className="h-4 w-4" />
           </Button>
@@ -261,8 +247,7 @@ const Preview = memo(({ data, templateId, type = 'resume' }) => {
             variant="ghost"
             size="icon"
             onClick={() => handleZoom('out')}
-            title="Zoom Out"
-            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+            title="Zoom Out (Ctrl/Cmd -)"
           >
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -270,44 +255,38 @@ const Preview = memo(({ data, templateId, type = 'resume' }) => {
             variant="ghost"
             size="icon"
             onClick={resetZoom}
-            title="Reset Zoom (Ctrl/Cmd + R)"
-            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+            title="Reset Zoom (Ctrl/Cmd R)"
           >
             <Maximize2 className="h-4 w-4" />
           </Button>
-          <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1" />
+          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700" />
           <Button
             variant="ghost"
             size="icon"
             onClick={handlePrint}
             title="Print"
-            className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
           >
             <Printer className="h-4 w-4" />
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                disabled={isLoading}
-                title="Export"
-                className="hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
-              >
+              <Button variant="ghost" size="icon" title="Download">
                 <Download className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="dark:bg-gray-900 dark:border-gray-700">
-              <DropdownMenuItem onClick={downloadPDF} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
-                <Download className="h-4 w-4 mr-2" />
-                Export as PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportToDocx(data, templateId, type)} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
-                <FileText className="h-4 w-4 mr-2" />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem 
+                onClick={() => exportToDocx(data, templateId, type)}
+                className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200"
+              >
+                <FileText className="mr-2 h-4 w-4" />
                 Export as DOCX
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportToHTML(data, templateId, type)} className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200">
-                <Code className="h-4 w-4 mr-2" />
+              <DropdownMenuItem 
+                onClick={() => exportToHTML(data, templateId, type)}
+                className="dark:hover:bg-gray-800 dark:focus:bg-gray-800 dark:text-gray-200"
+              >
+                <Code className="mr-2 h-4 w-4" />
                 Export as HTML
               </DropdownMenuItem>
             </DropdownMenuContent>

@@ -1,5 +1,16 @@
 import React from 'react';
 
+// Helper function to format dates
+const formatDate = (date) => {
+  if (!date) return '';
+  try {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  } catch (error) {
+    return date;
+  }
+};
+
 const MinimalTemplate = ({ data }) => {
   const { personal, experience, education, skills, professionalLinks, certifications, languages, projects } = data || {};
   const fullName = personal ? `${personal.firstName} ${personal.lastName}` : '';
@@ -81,7 +92,7 @@ const MinimalTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="text-base font-medium text-gray-900">{exp.position}</h3>
                   <span className="text-sm text-gray-500">
-                    {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                    {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 mb-1">{exp.company}</div>
@@ -108,7 +119,7 @@ const MinimalTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="text-base font-medium text-gray-900">{edu.degree}</h3>
                   <span className="text-sm text-gray-500">
-                    {edu.startDate} - {edu.endDate}
+                    {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 mb-1">{edu.school}</div>
@@ -164,8 +175,8 @@ const MinimalTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="text-base font-medium text-gray-900">{cert.name}</h3>
                   <span className="text-sm text-gray-500">
-                    {cert.issueDate && `Issued: ${cert.issueDate}`}
-                    {cert.expiryDate && ` - Expires: ${cert.expiryDate}`}
+                    {cert.issueDate && `Issued: ${formatDate(cert.issueDate)}`}
+                    {cert.expiryDate && ` - Expires: ${formatDate(cert.expiryDate)}`}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 mb-1">{cert.issuer}</div>
@@ -197,8 +208,7 @@ const MinimalTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-1">
                   <h3 className="text-base font-medium text-gray-900">{project.name}</h3>
                   <span className="text-sm text-gray-500">
-                    {project.startDate && `${project.startDate}`}
-                    {project.endDate ? ` - ${project.endDate}` : ' - Present'}
+                    {formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Present'}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mb-2">{project.description}</p>

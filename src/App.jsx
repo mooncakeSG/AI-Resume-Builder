@@ -7,16 +7,12 @@ import useKeyboardShortcuts from './hooks/useKeyboardShortcuts'
 import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp'
 
 const App = () => {
-  // Initialize keyboard shortcuts
-  useKeyboardShortcuts({
+  const keyboardShortcuts = {
     onPrint: () => {
+      // Handle print functionality
       window.print();
     },
-    onDownloadPDF: () => {
-      // Trigger the download button in the Preview component
-      document.querySelector('[data-action="download-pdf"]')?.click();
-    },
-  });
+  };
 
   return (
     <div className="min-h-screen bg-background font-sans antialiased">

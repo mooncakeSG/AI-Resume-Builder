@@ -1,5 +1,16 @@
 import React from 'react';
 
+// Helper function to format dates
+const formatDate = (date) => {
+  if (!date) return '';
+  try {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  } catch (error) {
+    return date;
+  }
+};
+
 export const ClassicTemplate = ({ data, settings }) => {
   const { personal, education, experience, skills, professionalLinks, certifications, languages, projects } = data || {};
   const { colorScheme, typography, spacing } = settings;
@@ -262,10 +273,8 @@ export const ClassicTemplate = ({ data, settings }) => {
                     <div className="text-right opacity-75">
                       {exp.startDate && (
                         <span>
-                          {new Date(exp.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                          {' - '}
-                          {exp.current ? 'Present' : exp.endDate ? 
-                            new Date(exp.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
+                          {formatDate(exp.startDate)} - {exp.current ? 'Present' : exp.endDate ? 
+                            formatDate(exp.endDate) : ''}
                         </span>
                       )}
                     </div>
@@ -307,8 +316,7 @@ export const ClassicTemplate = ({ data, settings }) => {
                   <div className="flex justify-between items-baseline mb-2">
                     <h3 className="text-base font-semibold">{project.name}</h3>
                     <span className="text-sm text-gray-600">
-                      {project.startDate && `${project.startDate}`}
-                      {project.endDate ? ` - ${project.endDate}` : ' - Present'}
+                      {formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Present'}
                     </span>
                   </div>
                   <p className="text-sm mb-2">{project.description}</p>
@@ -367,14 +375,7 @@ export const ClassicTemplate = ({ data, settings }) => {
                     <div className="text-sm opacity-75">{edu.location}</div>
                   )}
                   <div className="text-sm opacity-75 mt-1">
-                    {edu.startDate && (
-                      <span>
-                        {new Date(edu.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
-                        {' - '}
-                        {edu.current ? 'Present' : edu.endDate ? 
-                          new Date(edu.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : ''}
-                      </span>
-                    )}
+                    {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                   </div>
                   {edu.achievements?.length > 0 && (
                     <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
@@ -403,9 +404,9 @@ export const ClassicTemplate = ({ data, settings }) => {
                 <div key={index} className="relative">
                   <div className="flex justify-between items-baseline mb-2">
                     <h3 className="text-base font-semibold">{cert.name}</h3>
-                    <span className="text-sm text-gray-600">
-                      {cert.issueDate && `Issued: ${cert.issueDate}`}
-                      {cert.expiryDate && ` - Expires: ${cert.expiryDate}`}
+                    <span className="text-gray-600 text-sm">
+                      {cert.issueDate && `Issued: ${formatDate(cert.issueDate)}`}
+                      {cert.expiryDate && ` - Expires: ${formatDate(cert.expiryDate)}`}
                     </span>
                   </div>
                   <div className="text-sm font-medium mb-1">{cert.issuer}</div>

@@ -1,5 +1,16 @@
 import React from 'react';
 
+// Helper function to format dates
+const formatDate = (date) => {
+  if (!date) return '';
+  try {
+    const d = new Date(date);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+  } catch (error) {
+    return date;
+  }
+};
+
 const ModernTemplate = ({ data }) => {
   const { personal, experience, education, skills, professionalLinks, certifications, languages, projects } = data || {};
   const fullName = personal ? `${personal.firstName} ${personal.lastName}` : '';
@@ -111,7 +122,7 @@ const ModernTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-2">
                   <h3 className="text-xl font-semibold text-gray-900">{exp.position}</h3>
                   <span className="text-gray-600 text-sm">
-                    {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
+                    {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
                   </span>
                 </div>
                 <div className="text-gray-800 font-medium mb-2">{exp.company}</div>
@@ -140,7 +151,7 @@ const ModernTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-2">
                   <h3 className="text-xl font-semibold text-gray-900">{edu.degree}</h3>
                   <span className="text-gray-600 text-sm">
-                    {edu.startDate} - {edu.endDate}
+                    {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
                   </span>
                 </div>
                 <div className="text-gray-800 font-medium mb-1">{edu.school}</div>
@@ -181,8 +192,8 @@ const ModernTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-2">
                   <h3 className="text-xl font-semibold text-gray-900">{cert.name}</h3>
                   <span className="text-gray-600 text-sm">
-                    {cert.issueDate && `Issued: ${cert.issueDate}`}
-                    {cert.expiryDate && ` - Expires: ${cert.expiryDate}`}
+                    {cert.issueDate && `Issued: ${formatDate(cert.issueDate)}`}
+                    {cert.expiryDate && ` - Expires: ${formatDate(cert.expiryDate)}`}
                   </span>
                 </div>
                 <div className="text-gray-800 font-medium mb-2">{cert.issuer}</div>
@@ -243,8 +254,7 @@ const ModernTemplate = ({ data }) => {
                 <div className="flex justify-between items-baseline mb-2">
                   <h3 className="text-xl font-semibold text-gray-900">{project.name}</h3>
                   <span className="text-gray-600 text-sm">
-                    {project.startDate && `${project.startDate}`}
-                    {project.endDate ? ` - ${project.endDate}` : ' - Present'}
+                    {formatDate(project.startDate)} - {project.endDate ? formatDate(project.endDate) : 'Present'}
                   </span>
                 </div>
                 <p className="text-gray-700 mb-3">{project.description}</p>
