@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![AI Resume Builder Logo](public/logo.png)
+![AI Resume Builder Logo](https://i.ibb.co/gZP8dZfd/logoairesume.png)
 
 A modern, AI-powered resume builder that creates professional, ATS-friendly resumes with intelligent content suggestions and multiple export formats.
 
